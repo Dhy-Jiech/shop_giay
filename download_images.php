@@ -5,14 +5,20 @@ if (!is_dir($imagesDir)) {
 }
 
 $images = [
+    'collection-accessories.jpg'=>'https://images.unsplash.com/photo-1584916201218-f4242ceb4809?auto=format&fit=crop&w=1200&q=80',
+'collection-kid-fun.jpg'=>'https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?auto=format&fit=crop&w=1200&q=80',
+'collection-summer-breeze.jpg'=>'https://images.unsplash.com/photo-1514989940723-e8e51635b782?auto=format&fit=crop&w=1200&q=80',
+'collection-sport-power.jpg'=>'https://images.unsplash.com/photo-1460353581641-37baddab0fa2?auto=format&fit=crop&w=1200&q=80',
+'collection-elegant-lady.jpg'=>'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?auto=format&fit=crop&w=1200&q=80',
+'collection-urban-explorer.jpg'=>'https://images.unsplash.com/photo-1556906781-9a412961c28c?auto=format&fit=crop&w=1200&q=80',
+'collection-street-style.jpg'=>'https://images.unsplash.com/photo-1514989940723-e8e51635b782?auto=format&fit=crop&w=1200&q=80',
     'hero-bg-1.jpg' => 'https://images.unsplash.com/photo-1556906781-9a412961c28c?auto=format&fit=crop&w=1920&q=80',
     'cat-men.jpg' => 'https://images.unsplash.com/photo-1600185365483-26d7a4cc7519?auto=format&fit=crop&w=800&q=80',
     'cat-women.jpg' => 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?auto=format&fit=crop&w=800&q=80',
     'cat-sport.jpg' => 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=800&q=80',
     'cat-casual.jpg' => 'https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?auto=format&fit=crop&w=800&q=80',
     'cat-accessories.jpg' => 'https://images.unsplash.com/photo-1584916201218-f4242ceb4809?auto=format&fit=crop&w=800&q=80',
-    'collection-mua-he-soi-dong.jpg' => 'https://images.unsplash.com/photo-1460353581641-37baddab0fa2?auto=format&fit=crop&w=1200&q=80',
-    'collection-street-style.jpg' => 'https://images.unsplash.com/photo-1514989940723-e8e51635b782?auto=format&fit=crop&w=1200&q=80',
+    
     'banner-1.jpg' => 'https://images.unsplash.com/photo-1556906781-9a412961c28c?auto=format&fit=crop&w=800&q=80',
     'banner-2.jpg' => 'https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?auto=format&fit=crop&w=800&q=80',
     'brand-nike.png' => 'https://upload.wikimedia.org/wikipedia/commons/a/a6/Logo_NIKE.svg',
@@ -39,3 +45,4 @@ foreach ($images as $filename => $url) {
     }
 }
 echo "Done.";
+?>

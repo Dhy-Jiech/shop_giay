@@ -71,7 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
 const searchInput = document.querySelector('.search-input');
 if (searchInput) {
     let debounceTimer;
-    searchInput.addEventListener('input', function() {
+    searchInput.addEventListener('input', function () {
         clearTimeout(debounceTimer);
         debounceTimer = setTimeout(() => {
             if (this.value.length >= 2) {
@@ -113,7 +113,7 @@ document.head.appendChild(style);
 if (window.innerWidth <= 768) {
     const navItems = document.querySelectorAll('.nav-item.has-megamenu > a');
     navItems.forEach(item => {
-        item.addEventListener('click', function(e) {
+        item.addEventListener('click', function (e) {
             e.preventDefault();
             const megamenu = this.nextElementSibling;
             megamenu.style.display = megamenu.style.display === 'block' ? 'none' : 'block';
@@ -129,9 +129,9 @@ function showToast(message, type = 'info') {
         <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i>
         <span>${message}</span>
     `;
-    
+
     document.body.appendChild(toast);
-    
+
     setTimeout(() => {
         toast.style.animation = 'slideOutRight 0.3s ease';
         setTimeout(() => {
@@ -153,7 +153,7 @@ slideOutStyle.textContent = `
 document.head.appendChild(slideOutStyle);
 
 // Lazy load images
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     const images = document.querySelectorAll('img[data-src]');
     const imageObserver = new IntersectionObserver((entries, observer) => {
         entries.forEach(entry => {
@@ -165,7 +165,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
-    
+
     images.forEach(img => imageObserver.observe(img));
 });
 
@@ -173,15 +173,15 @@ document.addEventListener('DOMContentLoaded', function() {
 function addToCartAnimation(button) {
     const icon = button.querySelector('i');
     const originalClass = icon.className;
-    
+
     icon.className = 'fas fa-check';
     button.classList.add('added');
-    
+
     setTimeout(() => {
         icon.className = originalClass;
         button.classList.remove('added');
     }, 2000);
-    
+
     // Update cart count
     const cartCount = document.querySelector('.cart-count');
     if (cartCount) {
