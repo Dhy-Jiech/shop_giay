@@ -153,7 +153,7 @@ CREATE TABLE orders (
     total_amount DECIMAL(15,2) NOT NULL,
     discount_amount DECIMAL(15,2) DEFAULT 0,
     final_amount DECIMAL(15,2) NOT NULL,
-    payment_method ENUM('COD', 'Bank Transfer', 'Credit Card') DEFAULT 'COD',
+    payment_method ENUM('COD', 'Bank Transfer', 'Credit Card', 'QR') DEFAULT 'COD',
     payment_status ENUM('Pending', 'Paid', 'Failed', 'Refunded') DEFAULT 'Pending',
     order_status ENUM('Pending', 'Confirmed', 'Shipping', 'Completed', 'Cancelled') DEFAULT 'Pending',
     shipping_address TEXT NOT NULL,
@@ -182,7 +182,7 @@ CREATE TABLE order_status_history (
     id INT AUTO_INCREMENT PRIMARY KEY,
     order_id INT NOT NULL,
     status VARCHAR(50) NOT NULL,
-    changed_by INT, -- User ID
+    changed_by INT NULL, -- User ID
     note VARCHAR(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
@@ -342,3 +342,7 @@ INSERT INTO customer_tiers (name, min_spent, discount_percent) VALUES
 
 ALTER TABLE products ADD COLUMN collection_id INT NULL AFTER category_id;
 ALTER TABLE products ADD FOREIGN KEY (collection_id) REFERENCES collections(id);
+
+ALTER TABLE `customers` 
+ADD COLUMN `user_id` INT NULL AFTER `tier_id`,
+ADD FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE SET NULL;

@@ -28,7 +28,6 @@
 </footer>
 
 <!-- Scripts -->
-<script src="https://kit.fontawesome.com/your-kit-id.js" crossorigin="anonymous"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Collection tabs

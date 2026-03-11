@@ -1,322 +1,17 @@
 <?php include 'app/views/layouts/header.php'; ?>
 
-<!-- Hero Section với Slideshow -->
-<section class="hero-section">
-    <div class="hero-slider">
-        <div class="slide active" style="background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('/shop_giay/public/images/hero-bg-1.jpg')">
-            <div class="container">
-                <div class="hero-content">
-                    <span class="hero-subtitle">Bộ sưu tập mới 2026</span>
-                    <h1 class="hero-title">THỂ HIỆN <span class="highlight">CHẤT RIÊNG</span><br>CÙNG ĐỚ</h1>
-                    <p class="hero-description">Khám phá những mẫu giày thể thao thiết kế độc quyền, phong cách hiện đại và cực kỳ thoải mái.</p>
-                    <div class="hero-buttons">
-                        <a href="/shop_giay/product/index" class="btn btn-primary btn-large">
-                            <i class="fas fa-shopping-bag"></i>
-                            Mua ngay
-                        </a>
-                        <a href="/shop_giay/collection/index" class="btn btn-outline-light btn-large">
-                            <i class="fas fa-eye"></i>
-                            Xem bộ sưu tập
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <!-- Thêm các slide khác nếu cần -->
-    </div>
-    
-    <!-- Slider Controls -->
-    <div class="slider-controls">
-        <button class="slider-prev"><i class="fas fa-chevron-left"></i></button>
-        <button class="slider-next"><i class="fas fa-chevron-right"></i></button>
-    </div>
-    
-    <div class="slider-dots">
-        <span class="dot active"></span>
-        <span class="dot"></span>
-        <span class="dot"></span>
-    </div>
-</section>
-
-<!-- Features Section -->
-<section class="features-section">
-    <div class="container">
-        <div class="features-grid">
-            <div class="feature-item">
-                <div class="feature-icon">
-                    <i class="fas fa-truck"></i>
-                </div>
-                <div class="feature-content">
-                    <h3>Miễn phí vận chuyển</h3>
-                    <p>Cho đơn hàng từ 500.000đ</p>
-                </div>
-            </div>
-            <div class="feature-item">
-                <div class="feature-icon">
-                    <i class="fas fa-undo-alt"></i>
-                </div>
-                <div class="feature-content">
-                    <h3>Đổi trả dễ dàng</h3>
-                    <p>30 ngày miễn phí đổi trả</p>
-                </div>
-            </div>
-            <div class="feature-item">
-                <div class="feature-icon">
-                    <i class="fas fa-shield-alt"></i>
-                </div>
-                <div class="feature-content">
-                    <h3>Bảo hành chính hãng</h3>
-                    <p>12 tháng bảo hành sản phẩm</p>
-                </div>
-            </div>
-            <div class="feature-item">
-                <div class="feature-icon">
-                    <i class="fas fa-gift"></i>
-                </div>
-                <div class="feature-content">
-                    <h3>Quà tặng hấp dẫn</h3>
-                    <p>Nhiều ưu đãi bất ngờ</p>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- Categories Section -->
-<section class="categories-section">
-    <div class="container">
-        <div class="section-header">
-            <h2 class="section-title">Danh mục nổi bật</h2>
-            <p class="section-subtitle">Khám phá các dòng giày được yêu thích nhất</p>
-        </div>
-        
-        <div class="categories-grid">
-            <div class="category-card large">
-                <img src="/shop_giay/public/images/cat-men.jpg" alt="Giày Nam">
-                <div class="category-overlay">
-                    <h3>Giày Nam</h3>
-                    <a href="/shop_giay/product/index?gender=Men" class="btn btn-outline-light btn-sm">Xem ngay</a>
-                </div>
-            </div>
-            <div class="category-card">
-                <img src="/shop_giay/public/images/cat-women.jpg" alt="Giày Nữ">
-                <div class="category-overlay">
-                    <h3>Giày Nữ</h3>
-                    <a href="/shop_giay/product/index?gender=Women" class="btn btn-outline-light btn-sm">Xem ngay</a>
-                </div>
-            </div>
-            <div class="category-card">
-                <img src="/shop_giay/public/images/cat-sport.jpg" alt="Giày Thể Thao">
-                <div class="category-overlay">
-                    <h3>Thể thao</h3>
-                    <a href="/shop_giay/product/index?category=sport" class="btn btn-outline-light btn-sm">Xem ngay</a>
-                </div>
-            </div>
-            <div class="category-card">
-                <img src="/shop_giay/public/images/cat-casual.jpg" alt="Giày Casual">
-                <div class="category-overlay">
-                    <h3>Casual</h3>
-                    <a href="/shop_giay/product/index?category=casual" class="btn btn-outline-light btn-sm">Xem ngay</a>
-                </div>
-            </div>
-            <div class="category-card">
-                <img src="/shop_giay/public/images/cat-accessories.jpg" alt="Phụ kiện">
-                <div class="category-overlay">
-                    <h3>Phụ kiện</h3>
-                    <a href="/shop_giay/product/index?category=accessories" class="btn btn-outline-light btn-sm">Xem ngay</a>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- Collections Section -->
-<section class="collections-section">
-    <div class="container">
-        <div class="section-header">
-            <h2 class="section-title">Bộ sưu tập</h2>
-            <p class="section-subtitle">Khám phá các BST độc quyền từ ĐỚ</p>
-        </div>
-        
-        <div class="collections-tabs">
-            <?php foreach ($data['collections'] as $index => $collection): ?>
-                <button class="collection-tab <?= $index === 0 ? 'active' : '' ?>" 
-                        data-collection="<?= $collection['slug'] ?>">
-                    <?= htmlspecialchars($collection['name']) ?>
-                </button>
-            <?php endforeach; ?>
-        </div>
-        
-        <div class="collections-content">
-            <?php foreach ($data['collections'] as $index => $collection): ?>
-                <div class="collection-panel <?= $index === 0 ? 'active' : '' ?>" 
-                     id="collection-<?= $collection['slug'] ?>">
-                    <div class="collection-banner">
-                        <img src="/shop_giay/public/images/collection-<?= $collection['slug'] ?>.jpg" 
-                             alt="<?= htmlspecialchars($collection['name']) ?>">
-                        <div class="banner-content">
-                            <h3><?= htmlspecialchars($collection['name']) ?></h3>
-                            <p><?= htmlspecialchars($collection['description'] ?? '') ?></p>
-                            <a href="/shop_giay/product/index?collection=<?= $collection['slug'] ?>" 
-                               class="btn btn-primary">
-                                Xem tất cả <i class="fas fa-arrow-right"></i>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            <?php endforeach; ?>
-        </div>
-    </div>
-</section>
-
-<!-- Products Section -->
-<section class="products-section">
-    <div class="container">
-        <div class="section-header">
-            <h2 class="section-title">Sản phẩm mới nhất</h2>
-            <p class="section-subtitle">Cập nhật xu hướng mới nhất với những thiết kế độc đáo</p>
-        </div>
-        
-        <div class="product-filters">
-            <button class="filter-btn active" data-filter="all">Tất cả</button>
-            <button class="filter-btn" data-filter="new">Mới nhất</button>
-            <button class="filter-btn" data-filter="trending">Xu hướng</button>
-            <button class="filter-btn" data-filter="sale">Đang giảm giá</button>
-        </div>
-        
-        <div class="product-grid">
-            <?php foreach ($data['products'] as $product): ?>
-                <div class="product-card" data-category="<?= $product['category_slug'] ?? '' ?>">
-                    <div class="product-badges">
-                        <?php if ($product['is_new'] ?? false): ?>
-                            <span class="badge new">Mới</span>
-                        <?php endif; ?>
-                        <?php if (($product['discount_percent'] ?? 0) > 0): ?>
-                            <span class="badge sale">-<?= $product['discount_percent'] ?>%</span>
-                        <?php endif; ?>
-                    </div>
-                    
-                    <div class="product-image-wrapper">
-                        <a href="/shop_giay/product/detail/<?= $product['slug'] ?>">
-                            <img src="<?= htmlspecialchars($product['primary_image']) ?>" 
-                                 alt="<?= htmlspecialchars($product['name']) ?>" 
-                                 class="product-image front">
-                            <?php if (!empty($product['hover_image'])): ?>
-                                <img src="<?= htmlspecialchars($product['hover_image']) ?>" 
-                                     alt="<?= htmlspecialchars($product['name']) ?>" 
-                                     class="product-image hover">
-                            <?php endif; ?>
-                        </a>
-                        
-                        <div class="product-actions">
-                            <button class="action-btn quick-view" 
-                                    data-product-id="<?= $product['id'] ?>"
-                                    title="Xem nhanh">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="action-btn add-to-wishlist" 
-                                    data-product-id="<?= $product['id'] ?>"
-                                    title="Thêm vào yêu thích">
-                                <i class="far fa-heart"></i>
-                            </button>
-                            <button class="action-btn add-to-compare" 
-                                    data-product-id="<?= $product['id'] ?>"
-                                    title="So sánh">
-                                <i class="fas fa-chart-bar"></i>
-                            </button>
-                        </div>
-                        
-                        <form action="/shop_giay/cart/add" method="POST" class="add-to-cart-form">
-                            <input type="hidden" name="product_id" value="<?= $product['id'] ?>">
-                            <input type="hidden" name="variant_id" value="<?= $product['default_variant_id'] ?? '' ?>">
-                            <input type="hidden" name="quantity" value="1">
-                            <button type="submit" class="btn-add-to-cart">
-                                <i class="fas fa-shopping-cart"></i>
-                                <span>Thêm vào giỏ</span>
-                            </button>
-                        </form>
-                    </div>
-                    
-                    <div class="product-info">
-                        <p class="product-category"><?= htmlspecialchars($product['category_name'] ?? '') ?></p>
-                        <a href="/shop_giay/product/detail/<?= $product['slug'] ?>" class="product-title-link">
-                            <h3 class="product-title"><?= htmlspecialchars($product['name']) ?></h3>
-                        </a>
-                        
-                        <div class="product-rating">
-                            <div class="stars">
-                                <?php for ($i = 1; $i <= 5; $i++): ?>
-                                    <i class="fas fa-star <?= $i <= ($product['rating'] ?? 5) ? 'active' : '' ?>"></i>
-                                <?php endfor; ?>
-                            </div>
-                            <span class="rating-count">(<?= number_format($product['review_count'] ?? 0) ?>)</span>
-                        </div>
-                        
-                        <div class="product-price-wrapper">
-                            <?php if (!empty($product['old_price'])): ?>
-                                <span class="old-price"><?= number_format($product['old_price'], 0, ',', '.') ?>đ</span>
-                            <?php endif; ?>
-                            <span class="current-price"><?= number_format($product['price'], 0, ',', '.') ?>đ</span>
-                        </div>
-                    </div>
-                </div>
-            <?php endforeach; ?>
-        </div>
-        
-        <div class="section-footer">
-            <a href="/shop_giay/product/index" class="btn btn-outline-primary">
-                Xem tất cả sản phẩm <i class="fas fa-arrow-right"></i>
-            </a>
-        </div>
-    </div>
-</section>
-
-<!-- Banner Section -->
-<section class="banner-section">
-    <div class="container">
-        <div class="banner-grid">
-            <div class="banner-item">
-                <img src="/shop_giay/public/images/banner-1.jpg" alt="Summer Sale">
-                <div class="banner-content">
-                    <span class="banner-tag">Summer Sale</span>
-                    <h3>Giảm đến 50%</h3>
-                    <p>Cho các mẫu giày thể thao mới nhất</p>
-                    <a href="/shop_giay/product/index?sale=true" class="btn btn-primary btn-sm">Mua ngay</a>
-                </div>
-            </div>
-            <div class="banner-item">
-                <img src="/shop_giay/public/images/banner-2.jpg" alt="New Collection">
-                <div class="banner-content">
-                    <span class="banner-tag">New</span>
-                    <h3>Bộ sưu tập mới</h3>
-                    <p>Khám phá phong cách thời thượng</p>
-                    <a href="/shop_giay/collection/new" class="btn btn-primary btn-sm">Khám phá</a>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- Brands Section -->
-
-
-
-
-<!-- Quick View Modal -->
-<div class="modal" id="quickViewModal">
-    <div class="modal-content">
-        <span class="modal-close">&times;</span>
-        <div class="quick-view-content"></div>
-    </div>
-</div>
-
-<!-- Add CSS cho các section mới -->
 <style>
 /* Hero Section */
 .hero-section {
     position: relative;
     height: 600px;
     overflow: hidden;
+}
+
+.hero-slider {
+    position: relative;
+    width: 100%;
+    height: 100%;
 }
 
 .hero-slider .slide {
@@ -328,11 +23,15 @@
     background-size: cover;
     background-position: center;
     opacity: 0;
-    transition: opacity 0.5s ease;
+    visibility: hidden;
+    transition: opacity 0.8s ease-in-out, visibility 0.8s ease-in-out;
+    z-index: 1;
 }
 
 .hero-slider .slide.active {
     opacity: 1;
+    visibility: visible;
+    z-index: 2;
 }
 
 .hero-content {
@@ -341,6 +40,7 @@
     transform: translateY(-50%);
     color: white;
     max-width: 600px;
+    opacity: 1;
 }
 
 .hero-subtitle {
@@ -397,6 +97,8 @@
     display: flex;
     justify-content: space-between;
     padding: 0 20px;
+    z-index: 10;
+    pointer-events: none;
 }
 
 .slider-controls button {
@@ -409,6 +111,7 @@
     font-size: 1.2rem;
     cursor: pointer;
     transition: var(--transition);
+    pointer-events: auto;
 }
 
 .slider-controls button:hover {
@@ -423,6 +126,7 @@
     transform: translateX(-50%);
     display: flex;
     gap: 10px;
+    z-index: 10;
 }
 
 .dot {
@@ -439,7 +143,7 @@
     transform: scale(1.2);
 }
 
-/* Features Section */
+/* Features Section - Giữ nguyên */
 .features-section {
     padding: 60px 0;
     background: white;
@@ -531,34 +235,39 @@
 /* Collections Section */
 .collections-section {
     padding: 60px 0;
-    background: white;
+    background: #fff;
+    overflow: hidden;
 }
 
 .collections-tabs {
     display: flex;
     justify-content: center;
-    gap: 10px;
-    margin-bottom: 30px;
+    gap: 12px;
+    margin-bottom: 35px;
+    flex-wrap: wrap;
 }
 
 .collection-tab {
-    padding: 10px 20px;
-    border: 1px solid var(--border-color);
-    background: white;
+    padding: 10px 25px;
+    border: 1px solid #e0e0e0;
+    background: #fff;
     border-radius: 30px;
     cursor: pointer;
-    transition: var(--transition);
+    font-weight: 600;
+    transition: all 0.3s ease;
+    color: #555;
 }
 
-.collection-tab:hover,
 .collection-tab.active {
-    background: var(--primary-color);
-    color: white;
-    border-color: var(--primary-color);
+    background: #020101;
+    color: #fff;
+    border-color: #000;
 }
 
 .collection-panel {
     display: none;
+    width: 100%;
+    animation: fadeIn 0.5s ease-in-out;
 }
 
 .collection-panel.active {
@@ -567,29 +276,66 @@
 
 .collection-banner {
     position: relative;
-    height: 400px;
-    border-radius: 10px;
+    width: 100%;
+    height: 550px;
+    border-radius: 12px;
     overflow: hidden;
+    background: #222;
 }
 
 .collection-banner img {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    display: block;
+    filter: brightness(0.7);
 }
 
 .banner-content {
     position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
     text-align: center;
-    color: white;
-    background: rgba(0,0,0,0.6);
-    padding: 40px;
-    border-radius: 10px;
-    width: 80%;
+    background: rgba(0, 0, 0, 0.35);
+    padding: 20px;
+    z-index: 2;
+}
+
+.banner-content h3 {
+    font-size: 3.5rem;
+    font-weight: 800;
+    color: #fff;
+    margin-bottom: 15px;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+}
+
+.banner-content p {
+    font-size: 1.1rem;
     max-width: 500px;
+    margin-bottom: 25px;
+    color: white;
+}
+
+.banner-content .btn-primary {
+    background: #fff;
+    color: #000;
+    padding: 12px 35px;
+    border-radius: 4px;
+    font-weight: 700;
+    transition: 0.3s ease;
+}
+
+.banner-content .btn-primary:hover {
+    background: transparent;
+    color: #fff;
+    border: 1px solid white;
 }
 
 /* Products Section */
@@ -820,192 +566,11 @@
     color: var(--secondary-color);
 }
 
-/* Banner Section */
-.banner-section {
-    padding: 60px 0;
-    background: white;
-}
-
-.banner-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 30px;
-}
-
-.banner-item {
-    position: relative;
-    height: 300px;
-    border-radius: 10px;
-    overflow: hidden;
-}
-
-.banner-item img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.banner-content {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    padding: 40px;
-    background: linear-gradient(to right, rgba(0,0,0,0.7), transparent);
-    color: white;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-}
-
-.banner-tag {
-    font-size: 0.9rem;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    margin-bottom: 10px;
-    display: block;
-}
-
-.banner-content h3 {
-    font-size: 2rem;
-    margin-bottom: 10px;
-}
-
-/* Testimonials Section */
-.testimonials-section {
-    padding: 60px 0;
-    background: var(--light-bg);
-}
-
-.testimonials-slider {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 30px;
-}
-
-.testimonial-card {
-    background: white;
-    padding: 30px;
-    border-radius: 10px;
-    box-shadow: var(--shadow);
-}
-
-.testimonial-rating {
-    color: #f1c40f;
-    margin-bottom: 15px;
-}
-
-.testimonial-text {
-    font-style: italic;
-    margin-bottom: 20px;
-    line-height: 1.6;
-}
-
-.testimonial-author {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-}
-
-.testimonial-author img {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    object-fit: cover;
-}
-
-.testimonial-author h4 {
-    font-size: 1rem;
-    margin-bottom: 5px;
-}
-
-.testimonial-author p {
-    font-size: 0.8rem;
-    color: var(--text-light);
-}
-
-/* Brands Section */
-.brands-section {
-    padding: 40px 0;
-    background: white;
-}
-
-.brands-grid {
-    display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    gap: 30px;
-    align-items: center;
-}
-
-.brand-item img {
-    max-width: 100%;
-    filter: grayscale(100%);
-    opacity: 0.5;
-    transition: var(--transition);
-}
-
-.brand-item:hover img {
-    filter: grayscale(0);
-    opacity: 1;
-}
-
-/* Newsletter Section */
-.newsletter-section {
-    padding: 60px 0;
-    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
-    color: white;
-}
-
-.newsletter-wrapper {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 50px;
-    align-items: center;
-}
-
-.newsletter-content h3 {
-    font-size: 2rem;
-    margin-bottom: 10px;
-}
-
-.newsletter-content p {
-    opacity: 0.9;
-}
-
-.newsletter-form .form-group {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 15px;
-}
-
-.newsletter-form input[type="email"] {
-    flex: 1;
-    padding: 12px 20px;
-    border: none;
-    border-radius: 30px;
-    outline: none;
-}
-
-.checkbox-label {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 0.9rem;
-}
-
-.checkbox-label a {
-    color: white;
-    text-decoration: underline;
-}
-
 /* Responsive */
 @media (max-width: 1024px) {
     .features-grid,
     .categories-grid,
-    .product-grid,
-    .testimonials-slider,
-    .brands-grid {
+    .product-grid {
         grid-template-columns: repeat(2, 1fr);
     }
     
@@ -1030,20 +595,382 @@
     .features-grid,
     .categories-grid,
     .product-grid,
-    .testimonials-slider,
-    .brands-grid,
-    .banner-grid,
-    .newsletter-wrapper {
+    .banner-grid {
         grid-template-columns: 1fr;
     }
     
     .collections-tabs {
         flex-wrap: wrap;
     }
+    
+    .banner-content h3 {
+        font-size: 2rem;
+    }
 }
 </style>
 
-<!-- Add JavaScript -->
+<!-- Hero Section với Slideshow -->
+<section class="hero-section">
+    <div class="hero-slider">
+        <!-- Slide 1: Urban Collection -->
+        <div class="slide active" 
+             style="background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('/shop_giay/public/images/hero-urban.jpg')"
+             data-collection="urban-explorer">
+            <div class="container">
+                <div class="hero-content">
+                    <span class="hero-subtitle">Urban Explorer Collection</span>
+                    <h1 class="hero-title">PHONG CÁCH <span class="highlight">ĐƯỜNG PHỐ</span><br>CÁ TÍNH</h1>
+                    <p class="hero-description">Khám phá BST giày thể thao urban với thiết kế mạnh mẽ, phá cách dành cho giới trẻ.</p>
+                    <div class="hero-buttons">
+                        <a href="/shop_giay/product/index?collection=urban-explorer" class="btn btn-primary btn-large">
+                            <i class="fas fa-shopping-bag"></i>
+                            Khám phá ngay
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 2: Elegant Lady Collection -->
+        <div class="slide" 
+             style="background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('/shop_giay/public/images/hero-elegant.jpg')"
+             data-collection="elegant-lady">
+            <div class="container">
+                <div class="hero-content">
+                    <span class="hero-subtitle">Elegant Lady Collection</span>
+                    <h1 class="hero-title">THANH LỊCH VÀ <span class="highlight">TINH TẾ</span></h1>
+                    <p class="hero-description">BST giày nữ cao cấp với thiết kế sang trọng, tôn lên vẻ đẹp thanh lịch của phái đẹp.</p>
+                    <div class="hero-buttons">
+                        <a href="/shop_giay/product/index?collection=elegant-lady" class="btn btn-primary btn-large">
+                            <i class="fas fa-shopping-bag"></i>
+                            Khám phá ngay
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 3: Sport Power Collection -->
+        <div class="slide" 
+             style="background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('/shop_giay/public/images/hero-sport.jpg')"
+             data-collection="sport-power">
+            <div class="container">
+                <div class="hero-content">
+                    <span class="hero-subtitle">Sport Power Collection</span>
+                    <h1 class="hero-title">BỨT PHÁ <span class="highlight">GIỚI HẠN</span></h1>
+                    <p class="hero-description">Giày thể thao hiệu suất cao với công nghệ đệm tiên tiến, đồng hành cùng mọi vận động.</p>
+                    <div class="hero-buttons">
+                        <a href="/shop_giay/product/index?collection=sport-power" class="btn btn-primary btn-large">
+                            <i class="fas fa-shopping-bag"></i>
+                            Khám phá ngay
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 4: Summer Breeze Collection -->
+        <div class="slide" 
+             style="background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('/shop_giay/public/images/hero-summer.jpg')"
+             data-collection="summer-breeze">
+            <div class="container">
+                <div class="hero-content">
+                    <span class="hero-subtitle">Summer Breeze Collection</span>
+                    <h1 class="hero-title">MÁT MẺ - <span class="highlight">THOẢI MÁI</span></h1>
+                    <p class="hero-description">BST hè với sandal và giày thoáng mát, đồng hành cùng bạn trong mọi chuyến du lịch.</p>
+                    <div class="hero-buttons">
+                        <a href="/shop_giay/product/index?collection=summer-breeze" class="btn btn-primary btn-large">
+                            <i class="fas fa-shopping-bag"></i>
+                            Khám phá ngay
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 5: Kid Fun Collection -->
+        <div class="slide" 
+             style="background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('/shop_giay/public/images/hero-kid.jpg')"
+             data-collection="kid-fun">
+            <div class="container">
+                <div class="hero-content">
+                    <span class="hero-subtitle">Kid Fun Collection</span>
+                    <h1 class="hero-title">ĐÁNG YÊU - <span class="highlight">AN TOÀN</span></h1>
+                    <p class="hero-description">Giày trẻ em với thiết kế ngộ nghĩnh, chất liệu an toàn cho đôi chân của bé.</p>
+                    <div class="hero-buttons">
+                        <a href="/shop_giay/product/index?collection=kid-fun" class="btn btn-primary btn-large">
+                            <i class="fas fa-shopping-bag"></i>
+                            Khám phá ngay
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Slider Controls -->
+    <div class="slider-controls">
+        <button class="slider-prev"><i class="fas fa-chevron-left"></i></button>
+        <button class="slider-next"><i class="fas fa-chevron-right"></i></button>
+    </div>
+    
+    <div class="slider-dots">
+        <span class="dot active" data-slide="0"></span>
+        <span class="dot" data-slide="1"></span>
+        <span class="dot" data-slide="2"></span>
+        <span class="dot" data-slide="3"></span>
+        <span class="dot" data-slide="4"></span>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="features-section">
+    <div class="container">
+        <div class="features-grid">
+            <div class="feature-item">
+                <div class="feature-icon">
+                    <i class="fas fa-truck"></i>
+                </div>
+                <div class="feature-content">
+                    <h3>Miễn phí vận chuyển</h3>
+                    <p>Cho đơn hàng từ 500.000đ</p>
+                </div>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">
+                    <i class="fas fa-undo-alt"></i>
+                </div>
+                <div class="feature-content">
+                    <h3>Đổi trả dễ dàng</h3>
+                    <p>30 ngày miễn phí đổi trả</p>
+                </div>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <div class="feature-content">
+                    <h3>Bảo hành chính hãng</h3>
+                    <p>12 tháng bảo hành sản phẩm</p>
+                </div>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">
+                    <i class="fas fa-gift"></i>
+                </div>
+                <div class="feature-content">
+                    <h3>Quà tặng hấp dẫn</h3>
+                    <p>Nhiều ưu đãi bất ngờ</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Categories Section -->
+<section class="categories-section">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">Danh mục nổi bật</h2>
+            <p class="section-subtitle">Khám phá các dòng giày được yêu thích nhất</p>
+        </div>
+        
+        <div class="categories-grid">
+            <div class="category-card large">
+                <img src="/shop_giay/public/images/cat-men.jpg" alt="Giày Nam">
+                <div class="category-overlay">
+                    <h3>Giày Nam</h3>
+                    <a href="/shop_giay/product/index?gender=Men" class="btn btn-outline-light btn-sm">Xem ngay</a>
+                </div>
+            </div>
+            <div class="category-card">
+                <img src="/shop_giay/public/images/cat-women.jpg" alt="Giày Nữ">
+                <div class="category-overlay">
+                    <h3>Giày Nữ</h3>
+                    <a href="/shop_giay/product/index?gender=Women" class="btn btn-outline-light btn-sm">Xem ngay</a>
+                </div>
+            </div>
+            <div class="category-card">
+                <img src="/shop_giay/public/images/cat-sport.jpg" alt="Giày Thể Thao">
+                <div class="category-overlay">
+                    <h3>Thể thao</h3>
+                    <a href="/shop_giay/product/index?category=sport" class="btn btn-outline-light btn-sm">Xem ngay</a>
+                </div>
+            </div>
+            <div class="category-card">
+                <img src="/shop_giay/public/images/cat-casual.jpg" alt="Giày Casual">
+                <div class="category-overlay">
+                    <h3>Casual</h3>
+                    <a href="/shop_giay/product/index?category=casual" class="btn btn-outline-light btn-sm">Xem ngay</a>
+                </div>
+            </div>
+            <div class="category-card">
+                <img src="/shop_giay/public/images/cat-accessories.jpg" alt="Phụ kiện">
+                <div class="category-overlay">
+                    <h3>Phụ kiện</h3>
+                    <a href="/shop_giay/product/index?category=accessories" class="btn btn-outline-light btn-sm">Xem ngay</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Collections Section -->
+<section class="collections-section">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">Bộ sưu tập</h2>
+            <p class="section-subtitle">Khám phá các BST độc quyền từ ĐỚ</p>
+        </div>
+        
+        <div class="collections-tabs">
+            <?php foreach ($data['collections'] as $index => $collection): ?>
+                <button class="collection-tab <?= $index === 0 ? 'active' : '' ?>" 
+                        data-collection="<?= $collection['slug'] ?>">
+                    <?= htmlspecialchars($collection['name']) ?>
+                </button>
+            <?php endforeach; ?>
+        </div>
+        
+        <div class="collections-content">
+            <?php foreach ($data['collections'] as $index => $collection): ?>
+                <div class="collection-panel <?= $index === 0 ? 'active' : '' ?>" 
+                     id="collection-<?= $collection['slug'] ?>">
+                    <div class="collection-banner">
+                        <img src="/shop_giay/public/images/collection-<?= $collection['slug'] ?>.jpg" 
+                             alt="<?= htmlspecialchars($collection['name']) ?>">
+                        <div class="banner-content">
+                            <h3><?= htmlspecialchars($collection['name']) ?></h3>
+                            <p><?= htmlspecialchars($collection['description'] ?? '') ?></p>
+                            <a href="/shop_giay/product/index?collection=<?= $collection['slug'] ?>" 
+                               class="btn btn-primary">
+                                Xem tất cả <i class="fas fa-arrow-right"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
+</section>
+
+<!-- Products Section -->
+<section class="products-section">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">Sản phẩm mới nhất</h2>
+            <p class="section-subtitle">Cập nhật xu hướng mới nhất với những thiết kế độc đáo</p>
+        </div>
+        
+        <div class="product-filters">
+            <button class="filter-btn active" data-filter="all">Tất cả</button>
+            <button class="filter-btn" data-filter="new">Mới nhất</button>
+            <button class="filter-btn" data-filter="trending">Xu hướng</button>
+            <button class="filter-btn" data-filter="sale">Đang giảm giá</button>
+        </div>
+        
+        <div class="product-grid">
+            <?php foreach ($data['products'] as $product): ?>
+                <div class="product-card" data-category="<?= $product['category_slug'] ?? '' ?>">
+                    <div class="product-badges">
+                        <?php if ($product['is_new'] ?? false): ?>
+                            <span class="badge new">Mới</span>
+                        <?php endif; ?>
+                        <?php if (($product['discount_percent'] ?? 0) > 0): ?>
+                            <span class="badge sale">-<?= $product['discount_percent'] ?>%</span>
+                        <?php endif; ?>
+                    </div>
+                    
+                    <div class="product-image-wrapper">
+                        <a href="/shop_giay/product/detail/<?= $product['slug'] ?>">
+                            <img src="<?= htmlspecialchars($product['primary_image']) ?>" 
+                                 alt="<?= htmlspecialchars($product['name']) ?>" 
+                                 class="product-image front">
+                            <?php if (!empty($product['hover_image'])): ?>
+                                <img src="<?= htmlspecialchars($product['hover_image']) ?>" 
+                                     alt="<?= htmlspecialchars($product['name']) ?>" 
+                                     class="product-image hover">
+                            <?php endif; ?>
+                        </a>
+                        
+                        <div class="product-actions">
+                            <button class="action-btn quick-view" 
+                                    data-product-id="<?= $product['id'] ?>"
+                                    title="Xem nhanh">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="action-btn add-to-wishlist" 
+                                    data-product-id="<?= $product['id'] ?>"
+                                    title="Thêm vào yêu thích">
+                                <i class="far fa-heart"></i>
+                            </button>
+                            <button class="action-btn add-to-compare" 
+                                    data-product-id="<?= $product['id'] ?>"
+                                    title="So sánh">
+                                <i class="fas fa-chart-bar"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="product-actions-bottom" style="display: flex; gap: 10px; padding: 0 15px 15px;">
+                            <a href="/shop_giay/order/buyNow/<?= $product['id'] ?>" class="btn-buy-now" style="flex: 1; background: linear-gradient(135deg, #ff4757, #ff6b81); color: white; text-decoration: none; padding: 10px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 5px; transition: all 0.3s; box-shadow: 0 4px 15px rgba(255,71,87,0.2);">
+                                <i class="fas fa-bolt"></i>
+                                Mua ngay
+                            </a>
+                            <form action="/shop_giay/cart/add" method="POST" class="add-to-cart-form" style="flex: 1;">
+                                <input type="hidden" name="product_id" value="<?= $product['id'] ?>">
+                                <input type="hidden" name="variant_id" value="<?= $product['default_variant_id'] ?? '' ?>">
+                                <input type="hidden" name="quantity" value="1">
+                                <button type="submit" class="btn-add-to-cart" style="width: 100%; background: white; color: #333; border: 1px solid #ddd; padding: 10px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 5px; transition: all 0.3s; cursor: pointer;">
+                                    <i class="fas fa-shopping-cart"></i>
+                                    <span>Giỏ hàng</span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <div class="product-info">
+                        <p class="product-category"><?= htmlspecialchars($product['category_name'] ?? '') ?></p>
+                        <a href="/shop_giay/product/detail/<?= $product['slug'] ?>" class="product-title-link">
+                            <h3 class="product-title"><?= htmlspecialchars($product['name']) ?></h3>
+                        </a>
+                        
+                        <div class="product-rating">
+                            <div class="stars">
+                                <?php for ($i = 1; $i <= 5; $i++): ?>
+                                    <i class="fas fa-star <?= $i <= ($product['rating'] ?? 5) ? 'active' : '' ?>"></i>
+                                <?php endfor; ?>
+                            </div>
+                            <span class="rating-count">(<?= number_format($product['review_count'] ?? 0) ?>)</span>
+                        </div>
+                        
+                        <div class="product-price-wrapper">
+                            <?php if (!empty($product['old_price'])): ?>
+                                <span class="old-price"><?= number_format($product['old_price'], 0, ',', '.') ?>đ</span>
+                            <?php endif; ?>
+                            <span class="current-price"><?= number_format($product['price'], 0, ',', '.') ?>đ</span>
+                        </div>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
+        
+        <div class="section-footer">
+            <a href="/shop_giay/product/index" class="btn btn-outline-primary">
+                Xem tất cả sản phẩm <i class="fas fa-arrow-right"></i>
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Quick View Modal -->
+<div class="modal" id="quickViewModal">
+    <div class="modal-content">
+        <span class="modal-close">&times;</span>
+        <div class="quick-view-content"></div>
+    </div>
+</div>
+
+<!-- JavaScript - CHỈ MỘT BẢN DUY NHẤT -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Slider functionality
@@ -1052,39 +979,128 @@ document.addEventListener('DOMContentLoaded', function() {
     const prevBtn = document.querySelector('.slider-prev');
     const nextBtn = document.querySelector('.slider-next');
     let currentSlide = 0;
-    
+    let slideInterval;
+    const totalSlides = slides.length;
+
+    console.log('Total slides:', totalSlides);
+
     function showSlide(index) {
+        if (index < 0) {
+            index = totalSlides - 1;
+        } else if (index >= totalSlides) {
+            index = 0;
+        }
+        
         slides.forEach(slide => slide.classList.remove('active'));
         dots.forEach(dot => dot.classList.remove('active'));
         
         slides[index].classList.add('active');
         dots[index].classList.add('active');
+        
+        currentSlide = index;
+        console.log('Showing slide:', index);
     }
-    
+
     function nextSlide() {
-        currentSlide = (currentSlide + 1) % slides.length;
-        showSlide(currentSlide);
+        showSlide(currentSlide + 1);
     }
-    
+
     function prevSlide() {
-        currentSlide = (currentSlide - 1 + slides.length) % slides.length;
-        showSlide(currentSlide);
+        showSlide(currentSlide - 1);
     }
-    
-    if (prevBtn && nextBtn) {
-        prevBtn.addEventListener('click', prevSlide);
-        nextBtn.addEventListener('click', nextSlide);
+
+    function startAutoSlide() {
+        if (slideInterval) clearInterval(slideInterval);
+        slideInterval = setInterval(nextSlide, 5000);
     }
-    
+
+    function stopAutoSlide() {
+        if (slideInterval) {
+            clearInterval(slideInterval);
+            slideInterval = null;
+        }
+    }
+
+    // Event listeners
     dots.forEach((dot, index) => {
-        dot.addEventListener('click', () => {
-            currentSlide = index;
-            showSlide(currentSlide);
+        dot.addEventListener('click', function() {
+            showSlide(index);
+            stopAutoSlide();
+            startAutoSlide();
         });
     });
-    
-    // Auto slide every 5 seconds
-    setInterval(nextSlide, 5000);
+
+    if (prevBtn && nextBtn) {
+        prevBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            prevSlide();
+            stopAutoSlide();
+            startAutoSlide();
+        });
+        
+        nextBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            nextSlide();
+            stopAutoSlide();
+            startAutoSlide();
+        });
+    }
+
+    // Keyboard navigation
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'ArrowLeft') {
+            e.preventDefault();
+            prevSlide();
+            stopAutoSlide();
+            startAutoSlide();
+        } else if (e.key === 'ArrowRight') {
+            e.preventDefault();
+            nextSlide();
+            stopAutoSlide();
+            startAutoSlide();
+        }
+    });
+
+    // Touch events
+    let touchStartX = 0;
+    let touchEndX = 0;
+    const heroSection = document.querySelector('.hero-section');
+
+    if (heroSection) {
+        heroSection.addEventListener('touchstart', function(e) {
+            touchStartX = e.changedTouches[0].screenX;
+        }, { passive: true });
+        
+        heroSection.addEventListener('touchend', function(e) {
+            touchEndX = e.changedTouches[0].screenX;
+            const swipeThreshold = 50;
+            
+            if (touchEndX < touchStartX - swipeThreshold) {
+                nextSlide();
+                stopAutoSlide();
+                startAutoSlide();
+            } else if (touchEndX > touchStartX + swipeThreshold) {
+                prevSlide();
+                stopAutoSlide();
+                startAutoSlide();
+            }
+            
+            touchStartX = 0;
+            touchEndX = 0;
+        }, { passive: true });
+    }
+
+    // Hover pause
+    if (heroSection) {
+        heroSection.addEventListener('mouseenter', stopAutoSlide);
+        heroSection.addEventListener('mouseleave', startAutoSlide);
+    }
+
+    // Initialize
+    if (totalSlides > 0) {
+        showSlide(0);
+        startAutoSlide();
+    }
     
     // Collection tabs
     const tabs = document.querySelectorAll('.collection-tab');
@@ -1099,149 +1115,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 panel.classList.remove('active');
             });
             
-            document.getElementById(`collection-${collection}`).classList.add('active');
+            const activePanel = document.getElementById(`collection-${collection}`);
+            if (activePanel) activePanel.classList.add('active');
         });
     });
-    
-    // Product filters
-    const filterBtns = document.querySelectorAll('.filter-btn');
-    filterBtns.forEach(btn => {
-        btn.addEventListener('click', function() {
-            const filter = this.dataset.filter;
-            
-            filterBtns.forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
-            
-            // Filter products logic here
-            const products = document.querySelectorAll('.product-card');
-            products.forEach(product => {
-                if (filter === 'all') {
-                    product.style.display = 'block';
-                } else {
-                    // Add your filtering logic
-                    product.style.display = 'block';
-                }
-            });
-        });
-    });
-    
-    // Quick view modal
-    const quickViewBtns = document.querySelectorAll('.quick-view');
-    const modal = document.getElementById('quickViewModal');
-    const modalClose = document.querySelector('.modal-close');
-    
-    quickViewBtns.forEach(btn => {
-        btn.addEventListener('click', function(e) {
-            e.preventDefault();
-            const productId = this.dataset.productId;
-            
-            // Fetch product details via AJAX
-            fetch(`/shop_giay/product/quickView/${productId}`)
-                .then(response => response.text())
-                .then(html => {
-                    document.querySelector('.quick-view-content').innerHTML = html;
-                    modal.style.display = 'block';
-                });
-        });
-    });
-    
-    if (modalClose) {
-        modalClose.addEventListener('click', function() {
-            modal.style.display = 'none';
-        });
-    }
-    
-    window.addEventListener('click', function(e) {
-        if (e.target == modal) {
-            modal.style.display = 'none';
-        }
-    });
-    
-    // Add to cart animation
-    const addToCartForms = document.querySelectorAll('.add-to-cart-form');
-    addToCartForms.forEach(form => {
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const formData = new FormData(this);
-            
-            fetch(this.action, {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    const button = this.querySelector('.btn-add-to-cart');
-                    const originalText = button.innerHTML;
-                    
-                    button.innerHTML = '<i class="fas fa-check"></i> Đã thêm';
-                    button.style.background = '#2ecc71';
-                    
-                    setTimeout(() => {
-                        button.innerHTML = originalText;
-                        button.style.background = '';
-                    }, 2000);
-                    
-                    // Update cart count
-                    const cartCount = document.querySelector('.cart-count');
-                    if (cartCount) {
-                        cartCount.textContent = data.cart_count;
-                        cartCount.classList.add('pulse');
-                        setTimeout(() => {
-                            cartCount.classList.remove('pulse');
-                        }, 300);
-                    }
-                    
-                    showToast('Đã thêm vào giỏ hàng!', 'success');
-                }
-            });
-        });
-    });
-    
-    // Add to wishlist
-    const wishlistBtns = document.querySelectorAll('.add-to-wishlist');
-    wishlistBtns.forEach(btn => {
-        btn.addEventListener('click', function(e) {
-            e.preventDefault();
-            const productId = this.dataset.productId;
-            
-            fetch('/shop_giay/wishlist/add', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ product_id: productId })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    this.querySelector('i').className = 'fas fa-heart';
-                    this.querySelector('i').style.color = '#e74c3c';
-                    showToast('Đã thêm vào yêu thích!', 'success');
-                }
-            });
-        });
-    });
-    
-    // Toast function
-    function showToast(message, type = 'info') {
-        const toast = document.createElement('div');
-        toast.className = `toast ${type}`;
-        toast.innerHTML = `
-            <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i>
-            <span>${message}</span>
-        `;
-        
-        document.body.appendChild(toast);
-        
-        setTimeout(() => {
-            toast.style.animation = 'slideOutRight 0.3s ease';
-            setTimeout(() => {
-                toast.remove();
-            }, 300);
-        }, 3000);
-    }
 });
 </script>
 

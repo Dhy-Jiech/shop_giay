@@ -8,4 +8,8 @@ class Model
     {
         $this->db = Database::getInstance()->getConnection();
     }
+    public function getDb()
+    {
+        return $this->db;
+    }
 }

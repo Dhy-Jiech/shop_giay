@@ -125,24 +125,32 @@
                             <div class="row">
                                 <div class="col">
                                     <h4>Giày Nam</h4>
-                                    <a href="/shop_giay/product/index?category=1&gender=Men">Giày thể thao</a>
-                                    <a href="/shop_giay/product/index?category=2&gender=Men">Giày chạy bộ</a>
-                                    <a href="/shop_giay/product/index?category=3&gender=Men">Giày bóng rổ</a>
-                                    <a href="/shop_giay/product/index?category=4&gender=Men">Giày thời trang</a>
+                                    <a href="/shop_giay/product/index?category=5&gender=Men">Giày thể thao</a>
+                                    <a href="/shop_giay/product/index?category=6&gender=Men">Giày Tây</a>
+                                    <a href="/shop_giay/product/index?category=7&gender=Men">Giày Lười</a>
+                                    <a href="/shop_giay/product/index?category=8&gender=Men">Giày Sandal </a>
+                                    <a href="/shop_giay/product/index?category=9&gender=Men">Giày Chạy Bộ </a>
                                 </div>
                                 <div class="col">
                                     <h4>Giày Nữ</h4>
-                                    <a href="/shop_giay/product/index?category=1&gender=Women">Giày thể thao</a>
-                                    <a href="/shop_giay/product/index?category=2&gender=Women">Giày chạy bộ</a>
-                                    <a href="/shop_giay/product/index?category=5&gender=Women">Giày cao gót</a>
-                                    <a href="/shop_giay/product/index?category=6&gender=Women">Sandal</a>
+                                    <a href="/shop_giay/product/index?category=10&gender=Women">Giày thể thao</a>
+                                    <a href="/shop_giay/product/index?category=11&gender=Women">Giày Cao Gót</a>
+                                    <a href="/shop_giay/product/index?category=12&gender=Women">Giày Búp Bê</a>
+                                    <a href="/shop_giay/product/index?category=13&gender=Women">Giày Sandal</a>
+                                    <a href="/shop_giay/product/index?category=14&gender=Women">Giày Boots</a>
                                 </div>
                                 <div class="col">
+                                    <h4>Giày Trẻ Em</h4>
+                                    <a href="/shop_giay/product/index?category=15">Giày Bé Trai</a>
+                                    <a href="/shop_giay/product/index?category=16">Giày Bé Gái</a>
+                                </div>
+                                
+                                <div class="col">
                                     <h4>Phụ kiện</h4>
-                                    <a href="/shop_giay/product/index?category=7">Tất/vớ</a>
-                                    <a href="/shop_giay/product/index?category=8">Dây giày</a>
-                                    <a href="/shop_giay/product/index?category=9">Balo/túi</a>
-                                    <a href="/shop_giay/product/index?category=10">Nước vệ sinh giày</a>
+                                    <a href="/shop_giay/product/index?category=17">Tất/vớ</a>
+                                    <a href="/shop_giay/product/index?category=18">Dây giày</a>
+                                    <a href="/shop_giay/product/index?category=19">Balo/túi</a>
+                                    <a href="/shop_giay/product/index?category=20">Nước vệ sinh giày</a>
                                 </div>
                                 <div class="col highlight">
                                     <h4>Sale Off</h4>
