@@ -85,7 +85,7 @@
                             </div>
                             <div class="dropdown-menu">
                                 <a href="/shop_giay/user/profile"><i class="fas fa-user"></i> Thông tin cá nhân</a>
-                                <a href="/shop_giay/order/history"><i class="fas fa-history"></i> Lịch sử đơn hàng</a>
+                                <a href="/shop_giay/order/history"><i class="fas fa-history"></i> Theo dõi đơn hàng</a>
                                 <a href="/shop_giay/user/changePassword"><i class="fas fa-key"></i> Đổi mật khẩu</a>
                                 <?php if(isset($_SESSION['role_id']) && $_SESSION['role_id'] == 1): ?>
                                     <div class="dropdown-divider"></div>
@@ -165,7 +165,7 @@
                     <a href="/shop_giay/home/about"><i class="fas fa-info-circle"></i> Về Đớ</a>
                 </li>
                 <li class="nav-item <?= strpos($_SERVER['REQUEST_URI'], 'tracking') !== false ? 'active' : '' ?>">
-                    <a href="/shop_giay/order/tracking"><i class="fas fa-map-marker-alt"></i> Tra cứu đơn</a>
+                    <a href="/shop_giay/order/history"><i class="fas fa-map-marker-alt"></i> Theo dõi đơn hàng</a>
                 </li>
                 <li class="nav-item">
                     <a href="/shop_giay/home/news"><i class="fas fa-newspaper"></i> Tin tức</a>

@@ -381,6 +381,8 @@
     box-shadow: var(--shadow);
     transition: var(--transition);
     position: relative;
+    display: flex;
+    flex-direction: column;
 }
 
 .product-card:hover {
@@ -420,7 +422,7 @@
 
 .product-image {
     width: 100%;
-    height: 250px;
+    height: 100%;
     object-fit: cover;
     transition: opacity 0.3s ease;
 }
@@ -431,7 +433,6 @@
     left: 0;
     opacity: 0;
 }
-
 .product-card:hover .product-image.front {
     opacity: 0;
 }
@@ -455,6 +456,42 @@
 .product-card:hover .product-actions {
     opacity: 1;
     transform: translateX(0);
+}
+.quick-actions {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    opacity: 0;
+    transform: translateX(20px);
+    transition: var(--transition);
+    z-index: 2;
+}
+.product-image-wrapper:hover .quick-actions {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.quick-action-btn {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    background: white;
+    border: none;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.quick-action-btn:hover {
+    background: var(--primary-red);
+    color: white;
+    transform: scale(1.1);
 }
 
 .action-btn {
@@ -502,7 +539,7 @@
 }
 
 .product-info {
-    padding: 15px;
+    padding: 15px 15px 10px;
 }
 
 .product-category {
@@ -526,6 +563,7 @@
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
 }
+
 
 .product-rating {
     display: flex;
@@ -564,6 +602,61 @@
     font-size: 1.1rem;
     font-weight: 700;
     color: var(--secondary-color);
+}
+.product-actions-bottom {
+    display: flex;
+    gap: 10px;
+    padding: 0 15px 15px;
+    margin-top: auto;
+}
+.btn-buy-now {
+    flex: 1;
+    background: linear-gradient(135deg, #ff4757, #ff6b81);
+    color: white;
+    text-decoration: none;
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    transition: all 0.3s;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(255,71,87,0.2);
+}
+.btn-buy-now:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(255,71,87,0.3);
+}
+.add-to-cart-form {
+    flex: 1;
+}
+.btn-add-to-cart {
+    width: 100%;
+    background: white;
+    color: #333;
+    border: 1px solid #ddd;
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    transition: all 0.3s;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+.btn-add-to-cart:hover {
+    background: var(--primary-red);
+    color: white;
+    border-color: var(--primary-red);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(255,71,87,0.2);
 }
 
 /* Responsive */
@@ -754,15 +847,15 @@
                     <p>12 tháng bảo hành sản phẩm</p>
                 </div>
             </div>
-            <div class="feature-item">
+            <a href="/shop_giay/order/tracking" class="feature-item" style="text-decoration: none; color: inherit;">
                 <div class="feature-icon">
-                    <i class="fas fa-gift"></i>
+                    <i class="fas fa-map-marker-alt"></i>
                 </div>
                 <div class="feature-content">
-                    <h3>Quà tặng hấp dẫn</h3>
-                    <p>Nhiều ưu đãi bất ngờ</p>
+                    <h3>Tra cứu đơn hàng</h3>
+                    <p>Theo dõi hành trình đơn hàng</p>
                 </div>
-            </div>
+            </a>
         </div>
     </div>
 </section>
@@ -872,6 +965,7 @@
         <div class="product-grid">
             <?php foreach ($data['products'] as $product): ?>
                 <div class="product-card" data-category="<?= $product['category_slug'] ?? '' ?>">
+                    <!-- Badges - giữ nguyên vị trí -->
                     <div class="product-badges">
                         <?php if ($product['is_new'] ?? false): ?>
                             <span class="badge new">Mới</span>
@@ -881,6 +975,7 @@
                         <?php endif; ?>
                     </div>
                     
+                    <!-- Image Wrapper - CHỈ chứa ảnh và quick actions -->
                     <div class="product-image-wrapper">
                         <a href="/shop_giay/product/detail/<?= $product['slug'] ?>">
                             <img src="<?= htmlspecialchars($product['primary_image']) ?>" 
@@ -893,41 +988,27 @@
                             <?php endif; ?>
                         </a>
                         
-                        <div class="product-actions">
-                            <button class="action-btn quick-view" 
+                        <!-- Quick action buttons - chỉ hiện khi hover -->
+                        <div class="quick-actions">
+                            <button class="quick-action-btn quick-view" 
                                     data-product-id="<?= $product['id'] ?>"
                                     title="Xem nhanh">
                                 <i class="fas fa-eye"></i>
                             </button>
-                            <button class="action-btn add-to-wishlist" 
+                            <button class="quick-action-btn add-to-wishlist" 
                                     data-product-id="<?= $product['id'] ?>"
                                     title="Thêm vào yêu thích">
                                 <i class="far fa-heart"></i>
                             </button>
-                            <button class="action-btn add-to-compare" 
+                            <button class="quick-action-btn add-to-compare" 
                                     data-product-id="<?= $product['id'] ?>"
                                     title="So sánh">
                                 <i class="fas fa-chart-bar"></i>
                             </button>
                         </div>
-                        
-                        <div class="product-actions-bottom" style="display: flex; gap: 10px; padding: 0 15px 15px;">
-                            <a href="/shop_giay/order/buyNow/<?= $product['id'] ?>" class="btn-buy-now" style="flex: 1; background: linear-gradient(135deg, #ff4757, #ff6b81); color: white; text-decoration: none; padding: 10px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 5px; transition: all 0.3s; box-shadow: 0 4px 15px rgba(255,71,87,0.2);">
-                                <i class="fas fa-bolt"></i>
-                                Mua ngay
-                            </a>
-                            <form action="/shop_giay/cart/add" method="POST" class="add-to-cart-form" style="flex: 1;">
-                                <input type="hidden" name="product_id" value="<?= $product['id'] ?>">
-                                <input type="hidden" name="variant_id" value="<?= $product['default_variant_id'] ?? '' ?>">
-                                <input type="hidden" name="quantity" value="1">
-                                <button type="submit" class="btn-add-to-cart" style="width: 100%; background: white; color: #333; border: 1px solid #ddd; padding: 10px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 5px; transition: all 0.3s; cursor: pointer;">
-                                    <i class="fas fa-shopping-cart"></i>
-                                    <span>Giỏ hàng</span>
-                                </button>
-                            </form>
-                        </div>
                     </div>
                     
+                    <!-- Product Info - chứa thông tin sản phẩm -->
                     <div class="product-info">
                         <p class="product-category"><?= htmlspecialchars($product['category_name'] ?? '') ?></p>
                         <a href="/shop_giay/product/detail/<?= $product['slug'] ?>" class="product-title-link">
@@ -950,6 +1031,17 @@
                             <span class="current-price"><?= number_format($product['price'], 0, ',', '.') ?>đ</span>
                         </div>
                     </div>
+                    
+                    <div class="product-actions-bottom">
+    <!-- Nút Mua ngay -->
+        <a href="/shop_giay/order/buyNow/<?= $product['id'] ?>" class="btn-buy-now">
+            <i class="fas fa-bolt"></i>
+            Mua ngay
+        </a>
+    
+    <!-- Nút Thêm vào giỏ -->
+                    </div>
+
                 </div>
             <?php endforeach; ?>
         </div>

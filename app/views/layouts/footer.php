@@ -13,6 +13,14 @@
                 <p><i class="fas fa-envelope"></i> info@dostore.vn</p>
             </div>
             <div class="footer-section">
+                <h4>Hỗ trợ khách hàng</h4>
+                <ul class="footer-links">
+                    <li><a href="/shop_giay/order/tracking"><i class="fas fa-map-marker-alt"></i> Theo dõi đơn hàng</a></li>
+                    <li><a href="/shop_giay/home/about">Về Đớ Store</a></li>
+                    <li><a href="/shop_giay/home/contact">Liên hệ</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
                 <h4>Theo dõi chúng tôi</h4>
                 <div class="social-links">
                     <a href="#"><i class="fab fa-facebook"></i></a>
@@ -68,7 +76,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 .footer-content {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 30px;
     margin-bottom: 30px;
 }
@@ -102,6 +110,34 @@ document.addEventListener('DOMContentLoaded', function() {
 
 .social-links a:hover {
     color: var(--secondary-color);
+}
+
+.footer-links {
+    list-style: none;
+    padding: 0;
+}
+
+.footer-links li {
+    margin-bottom: 10px;
+}
+
+.footer-links a {
+    color: var(--white);
+    text-decoration: none;
+    opacity: 0.8;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+}
+
+.footer-links a i {
+    width: 20px;
+}
+
+.footer-links a:hover {
+    opacity: 1;
+    color: var(--secondary-color);
+    padding-left: 5px;
 }
 
 .footer-bottom {

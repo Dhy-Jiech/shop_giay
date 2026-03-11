@@ -745,149 +745,261 @@ textarea.form-control {
 
 <script>
     let paymentMethod = '<?= $_POST['payment_method'] ?? 'COD' ?>';
-let subtotal = <?= $total ?? 0 ?>;
-let discount = 0;
-let promoCode = '';
-document.getElementById('checkoutForm').addEventListener('submit', function(e) {
-    // Nếu là phương thức QR thì không xử lý ở đây
+    let subtotal = <?= $total ?? 0 ?>;
+    let discount = 0;
+    let promoCode = '';
+
+    document.getElementById('checkoutForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
     if (paymentMethod === 'QR') {
-        e.preventDefault();
         selectPayment('QR');
         return;
     }
     
-    // Hiển thị loading khi submit
     const submitBtn = document.getElementById('submitBtn');
     submitBtn.disabled = true;
     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang xử lý...';
     
-    // Form sẽ submit bình thường
-    return true;
-});
-
-
-
-
-function selectPayment(method) {
-    paymentMethod = method;
+    const formData = new FormData(this);
     
-    // Update UI
-    document.querySelectorAll('.payment-method').forEach(el => {
-        el.classList.remove('selected');
-    });
-    
-    event.currentTarget.classList.add('selected');
-    document.getElementById('payment_' + method.toLowerCase()).checked = true;
-    
-    // Show/hide QR section
-    if (method === 'QR') {
-        document.querySelector('.checkout-form > form').style.display = 'none';
-        document.getElementById('qrSection').classList.add('active');
-        document.getElementById('submitBtn').style.display = 'none';
-    } else {
-        document.querySelector('.checkout-form > form').style.display = 'block';
-        document.getElementById('qrSection').classList.remove('active');
-        document.getElementById('submitBtn').style.display = 'block';
-    }
-}
-
-function cancelQR() {
-    if (confirm('Hủy thanh toán QR và quay lại?')) {
-        document.getElementById('payment_cod').checked = true;
-        selectPayment('COD');
-    }
-}
-
-function checkQRPayment() {
-    document.getElementById('qrStatus').innerHTML = `
-        <i class="fas fa-spinner fa-spin"></i>
-        Đang kiểm tra thanh toán...
-    `;
-    
-    // Simulate payment check
-    setTimeout(() => {
-        if (confirm('Xác nhận đã thanh toán thành công?')) {
-            document.getElementById('checkoutForm').submit();
-        } else {
-            document.getElementById('qrStatus').innerHTML = `
-                <i class="fas fa-times-circle"></i>
-                Chưa nhận được thanh toán
-            `;
-        }
-    }, 2000);
-}
-
-function applyPromo() {
-    const promoInput = document.getElementById('promoCode');
-    const code = promoInput.value.trim().toUpperCase();
-    const messageDiv = document.getElementById('promoMessage');
-    const applyBtn = document.getElementById('applyPromoBtn');
-    
-    if (!code) {
-        messageDiv.className = 'promo-message error';
-        messageDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> Vui lòng nhập mã khuyến mãi';
-        return;
-    }
-    
-    applyBtn.disabled = true;
-    applyBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-    messageDiv.innerHTML = '';
-    
-    // Gọi API kiểm tra mã
-    fetch('/shop_giay/promotion/check', {
+    fetch('/shop_giay/order/checkout', {
         method: 'POST',
+        body: formData,
         headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            code: code,
-            total: subtotal
-        })
+            'X-Requested-With': 'XMLHttpRequest'
+        }
     })
-    .then(response => response.json())
+    .then(response => {
+        console.log('Response status:', response.status);
+        console.log('Response headers:', response.headers.get('content-type'));
+        
+        if (response.status === 302) {
+            // Redirect - session expired
+            throw new Error('Phiên đăng nhập hết hạn');
+        }
+        
+        if (!response.ok) {
+            throw new Error('HTTP error ' + response.status);
+        }
+        
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            console.error('Expected JSON but got:', contentType);
+            return response.text().then(text => {
+                console.error('Response text:', text.substring(0, 200));
+                throw new Error('Server returned HTML instead of JSON');
+            });
+        }
+        
+        return response.json();
+    })
     .then(data => {
+        console.log('Response data:', data);
+        
         if (data.success) {
-            discount = data.discount_amount;
-            promoCode = code;
-            
-            // Hiển thị discount
-            document.getElementById('discountRow').style.display = 'flex';
-            document.getElementById('discountAmount').textContent = new Intl.NumberFormat('vi-VN').format(discount);
-            
-            // Tính lại tổng
-            const shipping = subtotal >= 500000 ? 0 : 30000;
-            const finalTotal = subtotal - discount + shipping;
-            document.getElementById('finalTotal').textContent = new Intl.NumberFormat('vi-VN').format(finalTotal) + 'đ';
-            
-            messageDiv.className = 'promo-message success';
-            messageDiv.innerHTML = '<i class="fas fa-check-circle"></i> Áp dụng mã thành công!';
-            
-            // Thêm input hidden để gửi lên server
-            let hiddenInput = document.getElementById('promoCodeHidden');
-            if (!hiddenInput) {
-                hiddenInput = document.createElement('input');
-                hiddenInput.type = 'hidden';
-                hiddenInput.name = 'promo_code';
-                hiddenInput.id = 'promoCodeHidden';
-                document.getElementById('checkoutForm').appendChild(hiddenInput);
-            }
-            hiddenInput.value = code;
-            
+            showNotification('Đặt hàng thành công!', 'success');
+            setTimeout(() => {
+                window.location.href = '/shop_giay/order/success/' + data.order_code;
+            }, 1500);
         } else {
-            messageDiv.className = 'promo-message error';
-            messageDiv.innerHTML = '<i class="fas fa-times-circle"></i> ' + (data.message || 'Mã không hợp lệ');
+            showNotification(data.message || 'Có lỗi xảy ra', 'error');
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-check-circle"></i> Xác nhận đặt hàng';
+            
+            if (data.redirect) {
+                setTimeout(() => {
+                    window.location.href = data.redirect;
+                }, 2000);
+            }
         }
     })
     .catch(error => {
-        console.error('Error:', error);
-        messageDiv.className = 'promo-message error';
-        messageDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> Lỗi kết nối';
-    })
-    .finally(() => {
-        applyBtn.disabled = false;
-        applyBtn.innerHTML = 'Áp dụng';
+        console.error('Fetch error:', error);
+        
+        if (error.message.includes('Phiên đăng nhập')) {
+            showNotification('Phiên đăng nhập hết hạn. Đang chuyển hướng...', 'error');
+            setTimeout(() => {
+                window.location.href = '/shop_giay/auth/login';
+            }, 2000);
+        } else {
+            showNotification('Lỗi kết nối đến server: ' + error.message, 'error');
+        }
+        
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fas fa-check-circle"></i> Xác nhận đặt hàng';
     });
-}
+});
+
+    function showNotification(message, type = 'success') {
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            background: ${type === 'success' ? '#28a745' : '#dc3545'};
+            color: white;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            z-index: 9999;
+            animation: slideIn 0.3s ease;
+        `;
+        notification.innerHTML = `
+            <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
+            <span style="margin-left: 10px;">${message}</span>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.style.animation = 'slideOut 0.3s ease';
+            setTimeout(() => notification.remove(), 300);
+        }, 3000);
+    }
+
+    function selectPayment(method) {
+        paymentMethod = method;
+        
+        document.querySelectorAll('.payment-method').forEach(el => {
+            el.classList.remove('selected');
+        });
+        
+        event.currentTarget.classList.add('selected');
+        document.getElementById('payment_' + method.toLowerCase()).checked = true;
+        
+        if (method === 'QR') {
+            document.querySelector('.checkout-form > form').style.display = 'none';
+            document.getElementById('qrSection').classList.add('active');
+            document.getElementById('submitBtn').style.display = 'none';
+        } else {
+            document.querySelector('.checkout-form > form').style.display = 'block';
+            document.getElementById('qrSection').classList.remove('active');
+            document.getElementById('submitBtn').style.display = 'block';
+        }
+    }
+
+    function cancelQR() {
+        if (confirm('Hủy thanh toán QR và quay lại?')) {
+            document.getElementById('payment_cod').checked = true;
+            selectPayment('COD');
+        }
+    }
+
+    function checkQRPayment() {
+        document.getElementById('qrStatus').innerHTML = `
+            <i class="fas fa-spinner fa-spin"></i>
+            Đang kiểm tra thanh toán...
+        `;
+        
+        setTimeout(() => {
+            if (confirm('Xác nhận đã thanh toán thành công?')) {
+                document.getElementById('checkoutForm').submit();
+            } else {
+                document.getElementById('qrStatus').innerHTML = `
+                    <i class="fas fa-times-circle"></i>
+                    Chưa nhận được thanh toán
+                `;
+            }
+        }, 2000);
+    }
+
+    function applyPromo() {
+        const promoInput = document.getElementById('promoCode');
+        const code = promoInput.value.trim().toUpperCase();
+        const messageDiv = document.getElementById('promoMessage');
+        const applyBtn = document.getElementById('applyPromoBtn');
+        
+        if (!code) {
+            messageDiv.className = 'promo-message error';
+            messageDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> Vui lòng nhập mã khuyến mãi';
+            return;
+        }
+        
+        applyBtn.disabled = true;
+        applyBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        messageDiv.innerHTML = '';
+        
+        fetch('/shop_giay/promotion/check', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                code: code,
+                total: subtotal
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                discount = data.discount_amount;
+                promoCode = code;
+                
+                document.getElementById('discountRow').style.display = 'flex';
+                document.getElementById('discountAmount').textContent = new Intl.NumberFormat('vi-VN').format(discount);
+                
+                const shipping = subtotal >= 500000 ? 0 : 30000;
+                const finalTotal = subtotal - discount + shipping;
+                document.getElementById('finalTotal').textContent = new Intl.NumberFormat('vi-VN').format(finalTotal) + 'đ';
+                
+                messageDiv.className = 'promo-message success';
+                messageDiv.innerHTML = '<i class="fas fa-check-circle"></i> Áp dụng mã thành công!';
+                
+                let hiddenInput = document.getElementById('promoCodeHidden');
+                if (!hiddenInput) {
+                    hiddenInput = document.createElement('input');
+                    hiddenInput.type = 'hidden';
+                    hiddenInput.name = 'promo_code';
+                    hiddenInput.id = 'promoCodeHidden';
+                    document.getElementById('checkoutForm').appendChild(hiddenInput);
+                }
+                hiddenInput.value = code;
+                
+            } else {
+                messageDiv.className = 'promo-message error';
+                messageDiv.innerHTML = '<i class="fas fa-times-circle"></i> ' + (data.message || 'Mã không hợp lệ');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            messageDiv.className = 'promo-message error';
+            messageDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> Lỗi kết nối';
+        })
+        .finally(() => {
+            applyBtn.disabled = false;
+            applyBtn.innerHTML = 'Áp dụng';
+        });
+    }
+
+    // Thêm CSS cho animations
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+    `;
+    document.head.appendChild(style);
 </script>
 
 <?php include 'app/views/layouts/footer.php'; ?>

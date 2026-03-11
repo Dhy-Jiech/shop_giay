@@ -111,6 +111,9 @@
         </p>
         
         <div class="btn-group">
+            <a href="/shop_giay/order/detail/<?= htmlspecialchars($order['order_code'] ?? '') ?>" class="btn-primary">
+                <i class="fas fa-map-marker-alt"></i> Theo dõi đơn hàng
+            </a>
             <a href="/shop_giay/product/index" class="btn-secondary">
                 <i class="fas fa-shopping-bag"></i> Tiếp tục mua sắm
             </a>
