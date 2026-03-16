@@ -23,21 +23,23 @@ class ProductController extends Controller
         if ($query) {
             $products = $productModel->search($query);
             $title = 'Tìm kiếm: ' . htmlspecialchars($query);
-        } 
+        }
         // Xử lý lọc với nhiều tiêu chí
         else if ($collectionSlug || $categoryId || $gender || $minPrice || $maxPrice || $size) {
             $products = $productModel->filter($categoryId, $gender, $collectionSlug, $minPrice, $maxPrice, $size);
-            
+
             // Cập nhật tiêu đề
             if ($collectionSlug) {
                 $col = $collectionModel->getBySlug($collectionSlug);
                 $title = $col ? $col['name'] : 'Bộ sưu tập';
-            } elseif ($gender) {
+            }
+            elseif ($gender) {
                 $title = ($gender == 'Men') ? 'Giày Nam' : 'Giày Nữ';
-            } else {
+            }
+            else {
                 $title = 'Danh mục sản phẩm';
             }
-        } 
+        }
         else {
             $products = $productModel->getAll();
         }
@@ -89,6 +91,8 @@ class ProductController extends Controller
         if (!$product) {
             $this->redirect('product/index');
         }
+
+
 
         $this->view('product/detail', [
             'product' => $product,

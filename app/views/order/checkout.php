@@ -688,15 +688,22 @@ textarea.form-control {
                 <i class="fas fa-shopping-bag"></i>
                 Đơn hàng của bạn
             </h3>
-
+<?php 
+error_log("Checkout Items: " . print_r($items, true));
+?>
             <div class="summary-items">
                 <?php if (!empty($items) && is_array($items)): ?>
                     <?php foreach ($items as $item): ?>
                     <div class="summary-item">
                         <div class="item-image">
-                            <img src="<?= htmlspecialchars($item['image'] ?? '/public/images/no-image.png') ?>" 
-                                 alt="<?= htmlspecialchars($item['name']) ?>">
-                        </div>
+    <img src="<?= htmlspecialchars(
+        $item['primary_image'] ?? // Ưu tiên primary_image
+        $item['image'] ??        // Fallback sang image
+        '/public/images/no-image.png' // Fallback cuối cùng
+    ) ?>" 
+         alt="<?= htmlspecialchars($item['name']) ?>"
+         onerror="this.src='/public/images/no-image.png'">
+</div>
                         <div class="item-details">
                             <div class="item-name"><?= htmlspecialchars($item['name']) ?></div>
                             <div class="item-variant">

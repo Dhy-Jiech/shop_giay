@@ -23,4 +23,18 @@ class HomeController extends Controller
             'title' => 'Về Thương Hiệu Đớ'
         ]);
     }
+
+    public function news()
+    {
+        $this->view('page/news', [
+            'title' => 'Tin tức & Sự kiện - Đớ Store'
+        ]);
+    }
+
+    public function contact()
+    {
+        $this->view('page/contact', [
+            'title' => 'Liên hệ với chúng tôi - Đớ Store'
+        ]);
+    }
 }

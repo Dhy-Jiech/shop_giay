@@ -94,18 +94,18 @@ class OrderController extends Controller
 
         // Tạo item để chuyển sang checkout - CHỈ 1 SẢN PHẨM
         $buyNowItem = [
-            [
-                'product_id' => $product['id'],
-                'variant_id' => $selectedVariant['id'],
-                'name' => $product['name'],
-                'slug' => $product['slug'],
-                'size' => $selectedVariant['size'],
-                'color' => $selectedVariant['color'],
-                'price' => $selectedVariant['sale_price'],
-                'quantity' => $quantity,
-                'image' => $product['primary_image'] ?? '/public/images/no-image.png'
-            ]
-        ];
+    [
+        'product_id' => $product['id'],
+        'variant_id' => $selectedVariant['id'],
+        'name' => $product['name'],
+        'slug' => $product['slug'],
+        'size' => $selectedVariant['size'],
+        'color' => $selectedVariant['color'],
+        'price' => $selectedVariant['sale_price'],
+        'quantity' => $quantity,
+        'image' => $product['primary_image'] ?? '/public/images/no-image.png' // Đổi tên key
+    ]
+];
 
         // Lưu vào SESSION riêng - KHÔNG ẢNH HƯỞNG GIỎ HÀNG
         $_SESSION['buy_now_items'] = $buyNowItem;
@@ -122,274 +122,281 @@ class OrderController extends Controller
      * BƯỚC 3: Hiển thị form nhập thông tin giao hàng và thanh toán
      */
     public function checkout()
-{
-    // Kiểm tra đăng nhập
-    if (!isset($_SESSION['user_id']) && !isset($_SESSION['customer_id'])) {
-        // Nếu là AJAX request
-        if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && 
+    {
+        // Kiểm tra đăng nhập
+        if (!isset($_SESSION['user_id']) && !isset($_SESSION['customer_id'])) {
+            // Nếu là AJAX request
+            if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) &&
             strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
-            return $this->jsonResponse([
-                'success' => false,
-                'message' => 'Vui lòng đăng nhập để tiếp tục',
-                'redirect' => '/shop_giay/auth/login'
-            ]);
+                return $this->jsonResponse([
+                    'success' => false,
+                    'message' => 'Vui lòng đăng nhập để tiếp tục',
+                    'redirect' => '/shop_giay/auth/login'
+                ]);
+            }
+
+            $_SESSION['redirect_after_login'] = '/shop_giay/order/checkout';
+            $this->redirect('auth/login');
         }
-        
-        $_SESSION['redirect_after_login'] = '/shop_giay/order/checkout';
-        $this->redirect('auth/login');
-    }
 
-    $customerId = $_SESSION['customer_id'] ?? null;
-    $userId = $_SESSION['user_id'] ?? null;
-    $user = null;
+        $customerId = $_SESSION['customer_id'] ?? null;
+        $userId = $_SESSION['user_id'] ?? null;
+        $user = null;
 
-    if ($customerId) {
-        $customerModel = $this->model('Customer');
-        $user = $customerModel->findById($customerId);
-    } elseif ($userId) {
-        $userModel = $this->model('User');
-        $userData = $userModel->findById($userId);
-        if ($userData) {
+        if ($customerId) {
             $customerModel = $this->model('Customer');
-            $user = $customerModel->findByUsername($userData['username']);
-            if ($user) {
-                $_SESSION['customer_id'] = $user['id'];
-            } else {
-                // Tạo customer mới từ user
-                $customerData = [
-                    'username' => $userData['username'],
-                    'password' => $userData['password'],
-                    'full_name' => $userData['full_name'],
-                    'email' => $userData['email'],
-                    'phone' => $userData['phone'],
-                    'address' => $userData['address'] ?? '',
-                    'user_id' => $userData['id']
-                ];
-                $customerId = $customerModel->create($customerData);
-                if ($customerId) {
-                    $_SESSION['customer_id'] = $customerId;
-                    $user = $customerModel->findById($customerId);
+            $user = $customerModel->findById($customerId);
+        }
+        elseif ($userId) {
+            $userModel = $this->model('User');
+            $userData = $userModel->findById($userId);
+            if ($userData) {
+                $customerModel = $this->model('Customer');
+                $user = $customerModel->findByUsername($userData['username']);
+                if ($user) {
+                    $_SESSION['customer_id'] = $user['id'];
+                }
+                else {
+                    // Tạo customer mới từ user
+                    $customerData = [
+                        'username' => $userData['username'],
+                        'password' => $userData['password'],
+                        'full_name' => $userData['full_name'],
+                        'email' => $userData['email'],
+                        'phone' => $userData['phone'],
+                        'address' => $userData['address'] ?? '',
+                        'user_id' => $userData['id']
+                    ];
+                    $customerId = $customerModel->create($customerData);
+                    if ($customerId) {
+                        $_SESSION['customer_id'] = $customerId;
+                        $user = $customerModel->findById($customerId);
+                    }
                 }
             }
         }
-    }
 
-    // Kiểm tra xem có phải đang mua ngay không
-    $isBuyNow = isset($_GET['type']) && $_GET['type'] == 'buy_now';
+        // Kiểm tra xem có phải đang mua ngay không
+        $isBuyNow = isset($_GET['type']) && $_GET['type'] == 'buy_now';
 
-    if ($isBuyNow) {
-        // Lấy items từ session buy_now
-        $items = $_SESSION['buy_now_items'] ?? [];
-        
-        if (empty($items)) {
-            error_log("OrderController::checkout - Buy Now items missing in session");
-            
-            // Nếu là AJAX request
-            if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && 
+        if ($isBuyNow) {
+            // Lấy items từ session buy_now
+            $items = $_SESSION['buy_now_items'] ?? [];
+
+            if (empty($items)) {
+                error_log("OrderController::checkout - Buy Now items missing in session");
+
+                // Nếu là AJAX request
+                if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) &&
                 strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
-                return $this->jsonResponse([
-                    'success' => false,
-                    'message' => 'Không tìm thấy sản phẩm để thanh toán.'
-                ]);
+                    return $this->jsonResponse([
+                        'success' => false,
+                        'message' => 'Không tìm thấy sản phẩm để thanh toán.'
+                    ]);
+                }
+
+                $_SESSION['error'] = 'Không tìm thấy sản phẩm để thanh toán.';
+                $this->redirect('product/index');
+                return;
             }
-            
-            $_SESSION['error'] = 'Không tìm thấy sản phẩm để thanh toán.';
-            $this->redirect('product/index');
-            return;
-        }
-        
-        $cartId = null;
-        $total = 0;
 
-        foreach ($items as $item) {
-            $total += ($item['price'] ?? 0) * ($item['quantity'] ?? 0);
-        }
-    } else {
-        // Lấy items từ giỏ hàng
-        $cartModel = $this->model('Cart');
-        $cartId = $this->getCartId();
-        $items = $cartModel->getItems($cartId) ?: [];
-        $total = $cartModel->getTotal($cartId) ?: 0;
+            $cartId = null;
+            $total = 0;
 
-        if (empty($items)) {
-            error_log("OrderController::checkout - Cart is empty for CartID: " . $cartId);
-            
-            // Nếu là AJAX request
-            if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && 
+            foreach ($items as $item) {
+                $total += ($item['price'] ?? 0) * ($item['quantity'] ?? 0);
+            }
+        }
+        else {
+            // Lấy items từ giỏ hàng
+            $cartModel = $this->model('Cart');
+            $cartId = $this->getCartId();
+            $items = $cartModel->getItems($cartId) ?: [];
+            $total = $cartModel->getTotal($cartId) ?: 0;
+
+            if (empty($items)) {
+                error_log("OrderController::checkout - Cart is empty for CartID: " . $cartId);
+
+                // Nếu là AJAX request
+                if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) &&
                 strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
-                return $this->jsonResponse([
-                    'success' => false,
-                    'message' => 'Giỏ hàng của bạn đang trống.'
-                ]);
+                    return $this->jsonResponse([
+                        'success' => false,
+                        'message' => 'Giỏ hàng của bạn đang trống.'
+                    ]);
+                }
+
+                $this->redirect('cart/index');
+                return;
             }
-            
-            $this->redirect('cart/index');
-            return;
         }
-    }
 
-    // Xử lý POST request khi submit form checkout
-    if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-        return $this->processCheckout($items, $total, $isBuyNow, $cartId, $user);
-    }
+        // Xử lý POST request khi submit form checkout
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            return $this->processCheckout($items, $total, $isBuyNow, $cartId, $user);
+        }
 
-    // Hiển thị form nhập thông tin
-    error_log("Checkout items count: " . count($items));
-    $this->view('order/checkout', [
-        'items' => $items,
-        'total' => $total,
-        'user' => $user,
-        'isBuyNow' => $isBuyNow,
-        'promotions' => $this->getActivePromotions(),
-        'title' => 'Thông tin giao hàng - Đớ Store'
-    ]);
-}
+        // Hiển thị form nhập thông tin
+        error_log("Checkout items count: " . count($items));
+        $this->view('order/checkout', [
+            'items' => $items,
+            'total' => $total,
+            'user' => $user,
+            'isBuyNow' => $isBuyNow,
+            'promotions' => $this->getActivePromotions(),
+            'title' => 'Thông tin giao hàng - Đớ Store'
+        ]);
+    }
 
     /**
      * BƯỚC 4: Xử lý form nhập thông tin và tạo đơn hàng
      */
     private function processCheckout($items, $total, $isBuyNow, $cartId = null, $user = null)
-{
-    error_log("===== PROCESS CHECKOUT START =====");
-    error_log("Items: " . print_r($items, true));
-    error_log("Total: $total");
-    error_log("POST data: " . print_r($_POST, true));
-    error_log("Session data: " . print_r($_SESSION, true));
+    {
+        error_log("===== PROCESS CHECKOUT START =====");
+        error_log("Items: " . print_r($items, true));
+        error_log("Total: $total");
+        error_log("POST data: " . print_r($_POST, true));
+        error_log("Session data: " . print_r($_SESSION, true));
 
-    // Kiểm tra request có phải AJAX không
-    $isAjax = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && 
-              strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest';
-    
-    if (!$isAjax) {
-        error_log("Not an AJAX request");
-        return $this->jsonResponse([
-            'success' => false,
-            'message' => 'Invalid request type'
-        ]);
-    }
+        // Kiểm tra request có phải AJAX không
+        $isAjax = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) &&
+            strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest';
 
-    // Kiểm tra session
-    if (!isset($_SESSION['user_id']) && !isset($_SESSION['customer_id'])) {
-        error_log("Session expired - no user logged in");
-        return $this->jsonResponse([
-            'success' => false,
-            'message' => 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.',
-            'redirect' => '/shop_giay/auth/login'
-        ]);
-    }
+        if (!$isAjax) {
+            error_log("Not an AJAX request");
+            return $this->jsonResponse([
+                'success' => false,
+                'message' => 'Invalid request type'
+            ]);
+        }
 
-    $orderModel = $this->model('Order');
+        // Kiểm tra session
+        if (!isset($_SESSION['user_id']) && !isset($_SESSION['customer_id'])) {
+            error_log("Session expired - no user logged in");
+            return $this->jsonResponse([
+                'success' => false,
+                'message' => 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.',
+                'redirect' => '/shop_giay/auth/login'
+            ]);
+        }
 
-    $data = [
-        'recipient_name' => trim($_POST['recipient_name'] ?? ''),
-        'recipient_phone' => trim($_POST['recipient_phone'] ?? ''),
-        'shipping_address' => trim($_POST['shipping_address'] ?? ''),
-        'note' => trim($_POST['note'] ?? ''),
-        'payment_method' => $_POST['payment_method'] ?? 'COD',
-        'promo_code' => $_POST['promo_code'] ?? null
-    ];
+        $orderModel = $this->model('Order');
 
-    // Validate dữ liệu
-    $errors = [];
-    if (empty($data['recipient_name'])) {
-        $errors[] = 'Vui lòng nhập tên người nhận.';
-    }
-    if (empty($data['recipient_phone'])) {
-        $errors[] = 'Vui lòng nhập số điện thoại.';
-    } elseif (!preg_match('/^[0-9]{10,11}$/', $data['recipient_phone'])) {
-        $errors[] = 'Số điện thoại không hợp lệ (10-11 số).';
-    }
-    if (empty($data['shipping_address'])) {
-        $errors[] = 'Vui lòng nhập địa chỉ nhận hàng.';
-    }
+        $data = [
+            'recipient_name' => trim($_POST['recipient_name'] ?? ''),
+            'recipient_phone' => trim($_POST['recipient_phone'] ?? ''),
+            'shipping_address' => trim($_POST['shipping_address'] ?? ''),
+            'note' => trim($_POST['note'] ?? ''),
+            'payment_method' => $_POST['payment_method'] ?? 'COD',
+            'promo_code' => $_POST['promo_code'] ?? null
+        ];
 
-    if (!empty($errors)) {
-        return $this->jsonResponse([
-            'success' => false,
-            'message' => implode('<br>', $errors)
-        ]);
-    }
+        // Validate dữ liệu
+        $errors = [];
+        if (empty($data['recipient_name'])) {
+            $errors[] = 'Vui lòng nhập tên người nhận.';
+        }
+        if (empty($data['recipient_phone'])) {
+            $errors[] = 'Vui lòng nhập số điện thoại.';
+        }
+        elseif (!preg_match('/^[0-9]{10,11}$/', $data['recipient_phone'])) {
+            $errors[] = 'Số điện thoại không hợp lệ (10-11 số).';
+        }
+        if (empty($data['shipping_address'])) {
+            $errors[] = 'Vui lòng nhập địa chỉ nhận hàng.';
+        }
 
-    // Xác định customer_id
-    $customerId = $_SESSION['customer_id'] ?? null;
-    
-    // Nếu không có customer_id nhưng có user_id, tìm hoặc tạo customer
-    if (!$customerId && isset($_SESSION['user_id'])) {
-        $customerModel = $this->model('Customer');
-        $customer = $customerModel->findByUserId($_SESSION['user_id']);
-        
-        if (!$customer) {
-            // Tạo customer mới từ user
-            $userModel = $this->model('User');
-            $userData = $userModel->findById($_SESSION['user_id']);
-            if ($userData) {
-                $customerData = [
-                    'username' => $userData['username'],
-                    'password' => $userData['password'],
-                    'full_name' => $userData['full_name'],
-                    'email' => $userData['email'],
-                    'phone' => $userData['phone'],
-                    'address' => $userData['address'] ?? '',
-                    'user_id' => $userData['id']
-                ];
-                $customerId = $customerModel->create($customerData);
-                if ($customerId) {
-                    $_SESSION['customer_id'] = $customerId;
+        if (!empty($errors)) {
+            return $this->jsonResponse([
+                'success' => false,
+                'message' => implode('<br>', $errors)
+            ]);
+        }
+
+        // Xác định customer_id
+        $customerId = $_SESSION['customer_id'] ?? null;
+
+        // Nếu không có customer_id nhưng có user_id, tìm hoặc tạo customer
+        if (!$customerId && isset($_SESSION['user_id'])) {
+            $customerModel = $this->model('Customer');
+            $customer = $customerModel->findByUserId($_SESSION['user_id']);
+
+            if (!$customer) {
+                // Tạo customer mới từ user
+                $userModel = $this->model('User');
+                $userData = $userModel->findById($_SESSION['user_id']);
+                if ($userData) {
+                    $customerData = [
+                        'username' => $userData['username'],
+                        'password' => $userData['password'],
+                        'full_name' => $userData['full_name'],
+                        'email' => $userData['email'],
+                        'phone' => $userData['phone'],
+                        'address' => $userData['address'] ?? '',
+                        'user_id' => $userData['id']
+                    ];
+                    $customerId = $customerModel->create($customerData);
+                    if ($customerId) {
+                        $_SESSION['customer_id'] = $customerId;
+                    }
                 }
             }
-        } else {
-            $customerId = $customer['id'];
-            $_SESSION['customer_id'] = $customerId;
-        }
-    }
-
-    if (!$customerId) {
-        error_log("ERROR: No customer_id found");
-        return $this->jsonResponse([
-            'success' => false,
-            'message' => 'Không tìm thấy thông tin khách hàng. Vui lòng đăng nhập lại.'
-        ]);
-    }
-
-    // Xử lý mã khuyến mãi
-    $promoCode = trim($_POST['promo_code'] ?? '');
-    $discountAmount = 0;
-    $promotionId = null;
-
-    if (!empty($promoCode)) {
-        $promotionModel = $this->model('Promotion');
-        $promoResult = $promotionModel->calculateDiscount($promoCode, $total);
-        if ($promoResult['success']) {
-            $discountAmount = $promoResult['discount'];
-            $promotionId = $promoResult['promo']['id'];
-            $promotionModel->incrementUsedCount($promotionId);
-        }
-    }
-
-    // Tạo đơn hàng
-    $orderCode = $orderModel->createOrder($customerId, $data, $items, $isBuyNow, $discountAmount, $promotionId, $_SESSION['user_id'] ?? null);
-
-    if ($orderCode) {
-        // Xóa giỏ hàng hoặc session buy_now
-        if ($isBuyNow) {
-            unset($_SESSION['buy_now_items']);
-        } else {
-            $cartModel = $this->model('Cart');
-            $cartModel->clearCart($cartId);
+            else {
+                $customerId = $customer['id'];
+                $_SESSION['customer_id'] = $customerId;
+            }
         }
 
-        return $this->jsonResponse([
-            'success' => true,
-            'message' => 'Đặt hàng thành công!',
-            'order_code' => $orderCode
-        ]);
-    } else {
-        return $this->jsonResponse([
-            'success' => false,
-            'message' => 'Có lỗi xảy ra trong quá trình tạo đơn hàng. Vui lòng thử lại.'
-        ]);
+        if (!$customerId) {
+            error_log("ERROR: No customer_id found");
+            return $this->jsonResponse([
+                'success' => false,
+                'message' => 'Không tìm thấy thông tin khách hàng. Vui lòng đăng nhập lại.'
+            ]);
+        }
+
+        // Xử lý mã khuyến mãi
+        $promoCode = trim($_POST['promo_code'] ?? '');
+        $discountAmount = 0;
+        $promotionId = null;
+
+        if (!empty($promoCode)) {
+            $promotionModel = $this->model('Promotion');
+            $promoResult = $promotionModel->calculateDiscount($promoCode, $total);
+            if ($promoResult['success']) {
+                $discountAmount = $promoResult['discount'];
+                $promotionId = $promoResult['promo']['id'];
+                $promotionModel->incrementUsedCount($promotionId);
+            }
+        }
+
+        // Tạo đơn hàng
+        $orderCode = $orderModel->createOrder($customerId, $data, $items, $isBuyNow, $discountAmount, $promotionId, $_SESSION['user_id'] ?? null);
+
+        if ($orderCode) {
+            // Xóa giỏ hàng hoặc session buy_now
+            if ($isBuyNow) {
+                unset($_SESSION['buy_now_items']);
+            }
+            else {
+                $cartModel = $this->model('Cart');
+                $cartModel->clearCart($cartId);
+            }
+
+            return $this->jsonResponse([
+                'success' => true,
+                'message' => 'Đặt hàng thành công!',
+                'order_code' => $orderCode
+            ]);
+        }
+        else {
+            return $this->jsonResponse([
+                'success' => false,
+                'message' => 'Có lỗi xảy ra trong quá trình tạo đơn hàng. Vui lòng thử lại.'
+            ]);
+        }
     }
-}
 
 
 
@@ -451,7 +458,8 @@ class OrderController extends Controller
         echo json_encode($data);
         exit;
     }
-    public function tracking($orderCode = '')    {
+    public function tracking($orderCode = '')
+    {
         $orderModel = $this->model('Order');
 
         // Nếu có orderCode từ URL
@@ -504,59 +512,61 @@ class OrderController extends Controller
             }
         }
 
-        $this->view('order/tracking', ['title' => 'Theo dõi đơn hàng - Đớ Store']);    }
+        $this->view('order/tracking', ['title' => 'Theo dõi đơn hàng - Đớ Store']);
+    }
 
     public function history()
-{
-    // Kiểm tra đăng nhập
-    if (!isset($_SESSION['user_id']) && !isset($_SESSION['customer_id'])) {
-        $_SESSION['redirect_after_login'] = '/shop_giay/order/history';
-        $this->redirect('auth/login');
-        return;
-    }
-
-    $customerId = $_SESSION['customer_id'] ?? null;
-    $userId = $_SESSION['user_id'] ?? null;
-    
-    $orderModel = $this->model('Order');
-    $orders = [];
-    
-    if ($customerId) {
-        // Lấy đơn hàng theo customer_id
-        $orders = $orderModel->getByCustomerId($customerId);
-    } elseif ($userId) {
-        // Nếu có user_id, tìm customer tương ứng
-        $customerModel = $this->model('Customer');
-        $customer = $customerModel->findByUserId($userId);
-        if ($customer) {
-            $orders = $orderModel->getByCustomerId($customer['id']);
+    {
+        // Kiểm tra đăng nhập
+        if (!isset($_SESSION['user_id']) && !isset($_SESSION['customer_id'])) {
+            $_SESSION['redirect_after_login'] = '/shop_giay/order/history';
+            $this->redirect('auth/login');
+            return;
         }
+
+        $customerId = $_SESSION['customer_id'] ?? null;
+        $userId = $_SESSION['user_id'] ?? null;
+
+        $orderModel = $this->model('Order');
+        $orders = [];
+
+        if ($customerId) {
+            // Lấy đơn hàng theo customer_id
+            $orders = $orderModel->getByCustomerId($customerId);
+        }
+        elseif ($userId) {
+            // Nếu có user_id, tìm customer tương ứng
+            $customerModel = $this->model('Customer');
+            $customer = $customerModel->findByUserId($userId);
+            if ($customer) {
+                $orders = $orderModel->getByCustomerId($customer['id']);
+            }
+        }
+
+        $this->view('order/history', [
+            'orders' => $orders,
+            'title' => 'Lịch sử đơn hàng - Đớ Store'
+        ]);
     }
-    
-    $this->view('order/history', [
-        'orders' => $orders,
-        'title' => 'Lịch sử đơn hàng - Đớ Store'
-    ]);
-}
-public function detail($orderCode)
-{
-    $orderModel = $this->model('Order');
-    $order = $orderModel->getByOrderCode($orderCode);
-    
-    if (!$order) {
-        $_SESSION['error'] = 'Không tìm thấy đơn hàng';
-        $this->redirect('order/history');
-        return;
+    public function detail($orderCode)
+    {
+        $orderModel = $this->model('Order');
+        $order = $orderModel->getByOrderCode($orderCode);
+
+        if (!$order) {
+            $_SESSION['error'] = 'Không tìm thấy đơn hàng';
+            $this->redirect('order/history');
+            return;
+        }
+
+        // Đảm bảo lấy lịch sử đơn hàng
+        if (!isset($order['history'])) {
+            $order['history'] = $orderModel->getOrderHistory($order['id']);
+        }
+
+        $this->view('order/detail', [
+            'order' => $order,
+            'title' => 'Chi tiết đơn hàng - Đớ Store'
+        ]);
     }
-    
-    // Đảm bảo lấy lịch sử đơn hàng
-    if (!isset($order['history'])) {
-        $order['history'] = $orderModel->getOrderHistory($order['id']);
-    }
-    
-    $this->view('order/detail', [
-        'order' => $order,
-        'title' => 'Chi tiết đơn hàng - Đớ Store'
-    ]);
-}
 }
