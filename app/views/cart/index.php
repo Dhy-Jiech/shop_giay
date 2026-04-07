@@ -593,11 +593,11 @@
                                         <span class="item-total"><?= number_format($item['price'] * $item['quantity'], 0, ',', '.') ?>đ</span>
                                     </td>
                                     <td>
-                                        <a href="/shop_giay/cart/remove/<?= $item['product_id'] ?>" 
-                                           class="btn-remove" 
-                                           onclick="return confirm('Xóa sản phẩm này khỏi giỏ hàng?')">
-                                            <i class="fas fa-times"></i>
-                                        </a>
+                                        <a href="javascript:void(0)" 
+   class="btn-remove" 
+   onclick="removeItem(<?= $item['product_id'] ?>)">
+    <i class="fas fa-times"></i>
+</a>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
@@ -687,25 +687,163 @@ function updateQuantity(productId, change) {
     
     if (newQty < 1) return;
     
-    // Cập nhật số lượng trên giao diện
-    qtyInput.value = newQty;
+    // Hiệu ứng loading
+    qtyInput.style.opacity = '0.5';
+    qtyInput.disabled = true;
     
-    // Gửi AJAX request để cập nhật giỏ hàng
-    const form = document.getElementById(`update-form-${productId}`);
-    const formData = new FormData(form);
+    // Tìm row hiện tại
+    const row = qtyInput.closest('tr');
+    const itemTotalElement = row.querySelector('.item-total');
     
+    // Gửi AJAX request với header X-Requested-With
     fetch('/shop_giay/cart/update', {
         method: 'POST',
-        body: formData
+        headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify({
+            product_id: productId,
+            quantity: newQty
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Bỏ hiệu ứng loading
+        qtyInput.style.opacity = '1';
+        qtyInput.disabled = false;
+        
+        if (data.success) {
+            // Cập nhật số lượng trên input
+            qtyInput.value = newQty;
+            
+            // Cập nhật tổng tiền của item
+            if (itemTotalElement && data.data.item_total) {
+                itemTotalElement.textContent = formatCurrency(data.data.item_total) + 'đ';
+                highlightElement(itemTotalElement);
+            }
+            
+            // Cập nhật tổng giỏ hàng
+            updateCartSummary(data.data);
+            
+            // Hiển thị thông báo
+            showNotification('Đã cập nhật số lượng!', 'success');
+        } else {
+            showNotification(data.message || 'Có lỗi xảy ra!', 'error');
+        }
+    })
+    .catch(error => {
+        qtyInput.style.opacity = '1';
+        qtyInput.disabled = false;
+        console.error('Error:', error);
+        showNotification('Lỗi kết nối!', 'error');
+    });
+}
+
+// Hàm xóa sản phẩm (sửa link xóa)
+function removeItem(productId) {
+    if (!confirm('Xóa sản phẩm này khỏi giỏ hàng?')) return;
+    
+    fetch(`/shop_giay/cart/remove/${productId}`, {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            // Reload trang để cập nhật tổng tiền
-            location.reload();
+            // Xóa row khỏi bảng
+            const row = document.querySelector(`a[href="/shop_giay/cart/remove/${productId}"]`).closest('tr');
+            row.remove();
+            
+            // Cập nhật tổng giỏ hàng
+            updateCartSummary(data.data);
+            
+            // Cập nhật số lượng sản phẩm trong header
+            const cartCount = document.querySelector('.cart-count span');
+            if (cartCount) {
+                cartCount.textContent = data.data.item_count;
+            }
+            
+            // Kiểm tra nếu giỏ hàng trống
+            if (data.data.item_count === 0) {
+                location.reload(); // Reload để hiển thị empty cart
+            } else {
+                showNotification('Đã xóa sản phẩm!', 'success');
+            }
+        } else {
+            showNotification(data.message || 'Có lỗi xảy ra!', 'error');
         }
     })
-    .catch(error => console.error('Error:', error));
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('Lỗi kết nối!', 'error');
+    });
+}
+
+function updateCartSummary(data) {
+    // Cập nhật tổng tạm tính
+    const subtotalElement = document.querySelector('.summary-row:first-child span:last-child');
+    if (subtotalElement && data.subtotal) {
+        subtotalElement.textContent = formatCurrency(data.subtotal) + 'đ';
+        highlightElement(subtotalElement);
+    }
+    
+    // Cập nhật tổng cộng
+    const totalElement = document.querySelector('.total-price');
+    if (totalElement && data.total) {
+        totalElement.textContent = formatCurrency(data.total) + 'đ';
+        highlightElement(totalElement);
+    }
+    
+    // Cập nhật số lượng sản phẩm trong header
+    const cartCount = document.querySelector('.cart-count span');
+    if (cartCount && data.item_count) {
+        cartCount.textContent = data.item_count;
+        highlightElement(cartCount);
+    }
+}
+
+function formatCurrency(number) {
+    return new Intl.NumberFormat('vi-VN').format(number);
+}
+
+function highlightElement(element) {
+    element.style.transition = 'all 0.3s ease';
+    element.style.color = '#ef4444';
+    element.style.transform = 'scale(1.1)';
+    
+    setTimeout(() => {
+        element.style.color = '';
+        element.style.transform = '';
+    }, 300);
+}
+
+function showNotification(message, type) {
+    // Xóa thông báo cũ nếu có
+    const oldNotification = document.querySelector('.cart-notification');
+    if (oldNotification) {
+        oldNotification.remove();
+    }
+    
+    // Tạo thông báo mới
+    const notification = document.createElement('div');
+    notification.className = `cart-notification ${type}`;
+    notification.innerHTML = `
+        <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+        <span>${message}</span>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Tự động ẩn sau 2 giây
+    setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease forwards';
+        setTimeout(() => {
+            notification.remove();
+        }, 300);
+    }, 2000);
 }
 
 function applyPromo() {
@@ -715,25 +853,89 @@ function applyPromo() {
         return;
     }
     
-    // Gửi AJAX request để kiểm tra mã giảm giá
     fetch('/shop_giay/promotion/check', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
         },
         body: JSON.stringify({ code: promoCode, total: <?= $data['total'] ?> })
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            alert('Áp dụng mã giảm giá thành công!');
-            location.reload();
+            showNotification('Áp dụng mã giảm giá thành công!', 'success');
+            setTimeout(() => location.reload(), 1000);
         } else {
-            alert(data.message || 'Mã giảm giá không hợp lệ');
+            showNotification(data.message || 'Mã giảm giá không hợp lệ', 'error');
         }
     })
-    .catch(error => console.error('Error:', error));
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('Lỗi kết nối!', 'error');
+    });
 }
+
+// Thêm CSS cho notification
+const style = document.createElement('style');
+style.textContent = `
+    .cart-notification {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: white;
+        color: #1f2937;
+        padding: 15px 25px;
+        border-radius: 10px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        z-index: 9999;
+        animation: slideIn 0.3s ease;
+        border-left: 4px solid;
+    }
+    
+    .cart-notification.success {
+        border-left-color: #10b981;
+    }
+    
+    .cart-notification.success i {
+        color: #10b981;
+    }
+    
+    .cart-notification.error {
+        border-left-color: #ef4444;
+    }
+    
+    .cart-notification.error i {
+        color: #ef4444;
+    }
+    
+    @keyframes slideIn {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+    
+    @keyframes slideOut {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+    }
+`;
+
+document.head.appendChild(style);
 </script>
 
 <?php include 'app/views/layouts/footer.php'; ?>
