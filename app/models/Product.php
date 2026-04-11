@@ -3,9 +3,12 @@
 class Product extends Model
 {
     protected $table = 'products';
+
+    /**
+     * Lấy danh sách tất cả sản phẩm (kèm giá thấp nhất và ảnh chính)
+     */
     public function getAll($limit = 100)
     {
-        // Thêm JOIN với product_variants để lấy sale_price
         $sql = "SELECT p.*, c.name as collection_name, MIN(pv.sale_price) as price 
                 FROM products p 
                 LEFT JOIN collections c ON p.collection_id = c.id 
@@ -17,44 +20,85 @@ class Product extends Model
         
         $stmt = $this->db->prepare($sql);
         $stmt->execute([$limit]);
-        $products = $stmt->fetchAll();
+        $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
         return $this->attachPrimaryImages($products);
     }
 
+    /**
+     * Tìm sản phẩm theo Slug (Dùng cho trang chi tiết)
+     */
     public function getBySlug($slug)
-{
-    // 1. Lấy thông tin cơ bản của sản phẩm
-    $sql = "SELECT p.*, c.name as collection_name 
-            FROM products p 
-            LEFT JOIN collections c ON p.collection_id = c.id 
-            WHERE p.slug = ? AND p.status = 'In Stock'";
+    {
+        $sql = "SELECT p.*, c.name as collection_name 
+                FROM products p 
+                LEFT JOIN collections c ON p.collection_id = c.id 
+                WHERE p.slug = ? AND p.status = 'In Stock'";
+                
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$slug]);
+        $product = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($product) {
+            // Lấy biến thể, ảnh và đánh giá
+            $product['variants'] = $this->getVariants($product['id']);
+            $product['images'] = $this->getImages($product['id']);
+            $product['primary_image'] = $this->getPrimaryImage($product['id']);
             
-    $stmt = $this->db->prepare($sql);
-    $stmt->execute([$slug]);
-    $product = $stmt->fetch(PDO::FETCH_ASSOC);
+            // Lấy giá mặc định từ biến thể đầu tiên
+            if (!empty($product['variants'])) {
+                $product['price'] = $product['variants'][0]['sale_price'];
+                $product['size'] = $product['variants'][0]['size'];
+                $product['stock_quantity'] = $product['variants'][0]['stock_quantity'];
+            }
 
-    if ($product) {
-        // 2. Lấy TẤT CẢ các size và giá tương ứng từ bảng product_variants
-        $sqlVariants = "SELECT id, size, color, sale_price, stock_quantity 
-                        FROM product_variants 
-                        WHERE product_id = ?";
-        $stmtVar = $this->db->prepare($sqlVariants);
-        $stmtVar->execute([$product['id']]);
-        
-        // Lưu danh sách vào mảng 'variants'
-        $product['variants'] = $stmtVar->fetchAll(PDO::FETCH_ASSOC);
-        
-        // Lấy giá của biến thể đầu tiên làm giá hiển thị mặc định
-        if (!empty($product['variants'])) {
-            $product['price'] = $product['variants'][0]['sale_price'];
-            $product['size'] = $product['variants'][0]['size'];
-            $product['stock_quantity'] = $product['variants'][0]['stock_quantity'];
+            $ratingData = $this->getRealRatingInfo($product['id']);
+            $product['rating'] = $ratingData['avg_rating'] ?: 0;
+            $product['review_count'] = $ratingData['total_reviews'] ?: 0;
+            $product['category_name'] = $product['collection_name'] ?? 'Giày Thể Thao';
         }
-
-        $product['images'] = $this->getImages($product['id']);
+        return $product;
     }
-    return $product;
-}
+
+    /**
+     * Tìm sản phẩm theo ID
+     */
+    public function findById($id)
+    {
+        $id = trim($id);
+        if (!is_numeric($id)) return null;
+
+        $sql = "SELECT p.*, c.name as collection_name 
+                FROM products p 
+                LEFT JOIN collections c ON p.collection_id = c.id 
+                WHERE p.id = ?";
+        
+        try {
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute([$id]);
+            $product = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if ($product) {
+                if (empty($product['slug'])) {
+                    $product['slug'] = 'san-pham-' . $product['id'];
+                }
+                $product['primary_image'] = $this->getPrimaryImage($product['id']);
+                $product['price'] = $this->getProductPrice($product['id']);
+                $product['variants'] = $this->getVariants($product['id']);
+                
+                $ratingData = $this->getRealRatingInfo($product['id']);
+                $product['rating'] = $ratingData['avg_rating'] ?: 0;
+                $product['review_count'] = $ratingData['total_reviews'] ?: 0;
+            }
+            return $product;
+        } catch (PDOException $e) {
+            error_log("Product::findById - DB Error: " . $e->getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Tìm kiếm sản phẩm
+     */
     public function search($query)
     {
         $searchTerm = "%$query%";
@@ -67,27 +111,15 @@ class Product extends Model
                 
         $stmt = $this->db->prepare($sql);
         $stmt->execute([$searchTerm, $searchTerm]);
-        $products = $stmt->fetchAll();
+        $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
         return $this->attachPrimaryImages($products);
     }
 
-    public function getByCollectionSlug($slug)
+    /**
+     * Bộ lọc sản phẩm (Size, Giá, Danh mục, Giới tính)
+     */
+    public function filter($categoryId = null, $gender = null, $collectionSlug = null, $minPrice = null, $maxPrice = null, $size = null)
     {
-        $sql = "SELECT p.*, c.name as collection_name, MIN(pv.sale_price) as price 
-                FROM products p 
-                JOIN collections c ON p.collection_id = c.id 
-                LEFT JOIN product_variants pv ON p.id = pv.product_id
-                WHERE c.slug = ? AND p.status = 'In Stock'
-                GROUP BY p.id";
-                
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute([$slug]);
-        $products = $stmt->fetchAll();
-        return $this->attachPrimaryImages($products);
-    }
-   public function filter($categoryId = null, $gender = null, $collectionSlug = null, $minPrice = null, $maxPrice = null, $size = null)
-    {
-        // SQL cơ bản
         $sql = "SELECT p.*, c.name as collection_name, MIN(pv.sale_price) as price 
                 FROM products p 
                 LEFT JOIN collections c ON p.collection_id = c.id 
@@ -95,70 +127,136 @@ class Product extends Model
                 WHERE p.status = 'In Stock'";
         
         $params = [];
+        if ($categoryId) { $sql .= " AND p.category_id = ?"; $params[] = $categoryId; }
+        if ($gender) { $sql .= " AND p.gender = ?"; $params[] = $gender; }
+        if ($collectionSlug) { $sql .= " AND c.slug = ?"; $params[] = $collectionSlug; }
+        if ($size) { $sql .= " AND pv.size = ?"; $params[] = $size; }
 
-        // Lọc theo danh mục
-        if ($categoryId) {
-            $sql .= " AND p.category_id = ?";
-            $params[] = $categoryId;
-        }
-
-        // Lọc theo giới tính
-        if ($gender) {
-            $sql .= " AND p.gender = ?";
-            $params[] = $gender;
-        }
-
-        // Lọc theo bộ sưu tập
-        if ($collectionSlug) {
-            $sql .= " AND c.slug = ?";
-            $params[] = $collectionSlug;
-        }
-
-        // Lọc theo SIZE - Quan trọng: Phải JOIN với product_variants và lọc theo size
-        if ($size) {
-            $sql .= " AND pv.size = ?";
-            $params[] = $size;
-        }
-
-        // GROUP BY trước khi lọc giá
         $sql .= " GROUP BY p.id";
 
-        // Lọc theo KHOẢNG GIÁ - Phải để HAVING sau GROUP BY
         if ($minPrice !== null || $maxPrice !== null) {
             $sql .= " HAVING";
             if ($minPrice !== null && $maxPrice !== null) {
                 $sql .= " price BETWEEN ? AND ?";
-                $params[] = (float)$minPrice;
-                $params[] = (float)$maxPrice;
+                $params[] = (float)$minPrice; $params[] = (float)$maxPrice;
             } elseif ($minPrice !== null) {
-                $sql .= " price >= ?";
-                $params[] = (float)$minPrice;
+                $sql .= " price >= ?"; $params[] = (float)$minPrice;
             } elseif ($maxPrice !== null) {
-                $sql .= " price <= ?";
-                $params[] = (float)$maxPrice;
+                $sql .= " price <= ?"; $params[] = (float)$maxPrice;
             }
         }
 
         $sql .= " ORDER BY p.id DESC";
         
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
+        $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return $this->attachPrimaryImages($products);
+    }
+
+    /**
+     * Lấy thông tin đánh giá thực tế từ bảng reviews
+     */
+    public function getRealRatingInfo($productId)
+    {
+        $sql = "SELECT AVG(rating) as avg_rating, COUNT(id) as total_reviews 
+                FROM reviews WHERE product_id = ?";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$productId]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Lấy danh sách bình luận kèm tên khách hàng
+     */
+    public function getReviewsByProductId($productId)
+    {
+        // Chúng ta lấy trực tiếp customer_name vì bảng reviews của bạn không có customer_id
+        $sql = "SELECT id, product_id, customer_name as fullname, rating, comment, created_at 
+                FROM reviews 
+                WHERE product_id = ? 
+                ORDER BY created_at DESC";
+        
         try {
             $stmt = $this->db->prepare($sql);
-            $stmt->execute($params);
-            $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            
-            return $this->attachPrimaryImages($products);
+            $stmt->execute([$productId]);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (PDOException $e) {
-            error_log("Filter error: " . $e->getMessage());
+            error_log("Error in getReviewsByProductId: " . $e->getMessage());
             return [];
         }
     }
+
+    /**
+     * Hỗ trợ gắn ảnh và đánh giá vào danh sách sản phẩm
+     */
+    private function attachPrimaryImages($products)
+    {
+        foreach ($products as &$p) {
+            $p['primary_image'] = $this->getPrimaryImage($p['id']);
+            $p['hover_image'] = $p['primary_image'];
+
+            $ratingData = $this->getRealRatingInfo($p['id']);
+            $p['rating'] = $ratingData['avg_rating'] ? round($ratingData['avg_rating'], 1) : 0;
+            $p['review_count'] = $ratingData['total_reviews'] ?: 0;
+            
+            $p['category_name'] = $p['collection_name'] ?? 'Giày Thể Thao';
+            $p['price'] = isset($p['price']) ? (float)$p['price'] : 0;
+        }
+        return $products;
+    }
+
+    // --- CÁC HÀM BỔ TRỢ HỆ THỐNG ---
+
+   public function getPrimaryImage($productId)
+    {
+        $stmt = $this->db->prepare("SELECT image_url FROM product_images WHERE product_id = ? AND is_primary = 1 LIMIT 1");
+        $stmt->execute([$productId]);
+        $image = $stmt->fetchColumn();
+        
+        if ($image) {
+            // Xóa dấu gạch chéo dư thừa ở đầu để XAMPP nhận đúng thư mục public
+            return ltrim($image, '/'); 
+        }
+        
+        return 'public/images/no-image.png';
+    }
+
+    public function getProductPrice($productId)
+    {
+        $stmt = $this->db->prepare("SELECT MIN(sale_price) as price FROM product_variants WHERE product_id = ?");
+        $stmt->execute([$productId]);
+        return $stmt->fetchColumn() ?: 0;
+    }
+
+    public function getVariants($productId)
+    {
+        $stmt = $this->db->prepare("SELECT * FROM product_variants WHERE product_id = ? ORDER BY size ASC");
+        $stmt->execute([$productId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    private function getImages($productId)
+    {
+        $stmt = $this->db->prepare("SELECT * FROM product_images WHERE product_id = ?");
+        $stmt->execute([$productId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
     public function getAllSizes()
     {
         $sql = "SELECT DISTINCT size FROM product_variants ORDER BY CAST(size AS UNSIGNED) ASC";
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute();
-        return $stmt->fetchAll(PDO::FETCH_COLUMN);
+        return $this->db->query($sql)->fetchAll(PDO::FETCH_COLUMN);
     }
+
+    public function getPriceRange()
+    {
+        $sql = "SELECT MIN(sale_price) as min_price, MAX(sale_price) as max_price FROM product_variants";
+        return $this->db->query($sql)->fetch(PDO::FETCH_ASSOC);
+    }
+    /**
+     * Đếm số lượng sản phẩm theo từng Size (Dùng cho Sidebar lọc sản phẩm)
+     */
     public function countProductsBySize()
     {
         $sql = "SELECT pv.size, COUNT(DISTINCT p.id) as product_count
@@ -167,183 +265,103 @@ class Product extends Model
                 WHERE p.status = 'In Stock'
                 GROUP BY pv.size
                 ORDER BY CAST(pv.size AS UNSIGNED) ASC";
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute();
-        $result = [];
-        foreach ($stmt->fetchAll() as $row) {
-            $result[$row['size']] = $row['product_count'];
+        
+        try {
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute();
+            $result = [];
+            foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+                $result[$row['size']] = $row['product_count'];
+            }
+            return $result;
+        } catch (PDOException $e) {
+            error_log("Error in countProductsBySize: " . $e->getMessage());
+            return [];
         }
-        return $result;
-    }
-    public function getPriceRange()
-    {
-        $sql = "SELECT MIN(sale_price) as min_price, MAX(sale_price) as max_price 
-                FROM product_variants pv
-                JOIN products p ON p.id = pv.product_id
-                WHERE p.status = 'In Stock'";
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute();
-        return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-
-    private function getImages($productId)
-    {
-        $stmt = $this->db->prepare("SELECT * FROM product_images WHERE product_id = ?");
-        $stmt->execute([$productId]);
-        return $stmt->fetchAll();
-    }
-
-    private function attachPrimaryImages($products)
-    {
-        foreach ($products as &$p) {
-            // Lấy ảnh chính
-            $stmt = $this->db->prepare("SELECT image_url FROM product_images WHERE product_id = ? AND is_primary = TRUE LIMIT 1");
-            $stmt->execute([$p['id']]);
-            $img = $stmt->fetchColumn();
-            $p['primary_image'] = $img ?: 'public/images/default-shoe.jpg';
-
-            $p['hover_image'] = $p['primary_image'];
-            $p['is_new'] = true;
-            $p['discount_percent'] = rand(0, 1) ? rand(10, 30) : 0;
-            $p['rating'] = rand(4, 5);
-            $p['review_count'] = rand(10, 500);
-            $p['category_name'] = $p['collection_name'] ?? 'Giày Thể Thao';
-            $p['category_slug'] = 'the-thao';
-            $p['default_variant_id'] = $p['id'];
-
-            // FIX LỖI: Kiểm tra key 'price' (alias từ MIN(sale_price)) trước khi tính toán
-            $currentPrice = isset($p['price']) ? (float)$p['price'] : 0;
-            $p['old_price'] = $p['discount_percent'] > 0 ? $currentPrice * (1 + $p['discount_percent'] / 100) : null;
-            $p['price'] = $currentPrice; 
-        }
-        return $products;
-    }
-        public function countByGender($gender)
+    /**
+     * Đếm số lượng sản phẩm theo giới tính
+     */
+    public function countByGender($gender)
     {
         $sql = "SELECT COUNT(DISTINCT p.id) as count
                 FROM products p
-                LEFT JOIN product_variants pv ON p.id = pv.product_id
                 WHERE p.status = 'In Stock' AND p.gender = ?";
         $stmt = $this->db->prepare($sql);
         $stmt->execute([$gender]);
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
         return $result ? (int)$result['count'] : 0;
     }
+    /**
+ * Thêm đánh giá mới vào cơ sở dữ liệu
+ * Dữ liệu bao gồm: product_id, customer_name, rating, comment
+ */
+public function addReview($data)
+{
+    // Câu lệnh SQL để lưu vào bảng reviews
+    // Đảm bảo tên bảng và các cột khớp với database của bạn
+    $sql = "INSERT INTO reviews (product_id, customer_name, rating, comment, created_at) 
+            VALUES (:product_id, :customer_name, :rating, :comment, NOW())";
+    
+    try {
+        $stmt = $this->db->prepare($sql);
+        
+        // Ràng buộc dữ liệu để tránh SQL Injection
+        return $stmt->execute([
+            ':product_id'    => $data['product_id'],
+            ':customer_name' => $data['customer_name'],
+            ':rating'        => $data['rating'],
+            ':comment'       => $data['comment']
+        ]);
+    } catch (PDOException $e) {
+        // Ghi log lỗi nếu có vấn đề về truy vấn
+        error_log("Lỗi Model Product::addReview: " . $e->getMessage());
+        return false;
+    }
+}
 
     /**
-     * Đếm số lượng sản phẩm theo collection
+     * Đếm số lượng sản phẩm theo bộ sưu tập
      */
     public function countByCollection($collectionSlug)
     {
         $sql = "SELECT COUNT(DISTINCT p.id) as count
                 FROM products p
                 JOIN collections c ON p.collection_id = c.id
-                LEFT JOIN product_variants pv ON p.id = pv.product_id
                 WHERE p.status = 'In Stock' AND c.slug = ?";
         $stmt = $this->db->prepare($sql);
         $stmt->execute([$collectionSlug]);
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
         return $result ? (int)$result['count'] : 0;
     }
-    public function findById($id)
+    /**
+     * Bí danh cho hàm getBySlug để tương thích với Controller cũ
+     */
+    public function findBySlug($slug)
     {
-        // Debug: Log what we are looking for
-        $id = trim($id); // FIX
-    
-    if (!is_numeric($id)) {
-        return null;
-    }
-
-    $sql = "SELECT p.*, c.name as collection_name
-            FROM products p
-            LEFT JOIN collections c ON p.collection_id = c.id
-            WHERE p.id = ?";
+        return $this->getBySlug($slug);
+    }/**
+     * Tính trung bình cộng số sao (Bổ sung để tương thích với Controller dòng 95)
+     */
+    public function calculateAverageRating($productId)
+    {
+        $sql = "SELECT AVG(rating) as avg_rating, COUNT(id) as total_reviews 
+                FROM reviews 
+                WHERE product_id = ?";
         
         try {
             $stmt = $this->db->prepare($sql);
-            $stmt->execute([$id]);
-            $product = $stmt->fetch(PDO::FETCH_ASSOC);
-            
-            if ($product) {
-                // Ensure slug is set
-                if (empty($product['slug'])) {
-                    $product['slug'] = 'san-pham-' . $product['id'];
-                }
-                
-                // Add primary image and price
-                $product['primary_image'] = $this->getPrimaryImage($product['id']);
-                $product['price'] = $this->getProductPrice($product['id']);
-                $product['variants'] = $this->getVariants($product['id']); // Load variants here too
-                
-                error_log("Product::findById - Found: " . $product['name']);
-            } else {
-                error_log("Product::findById - Not found for value: " . $id);
-            }
-            
-            return $product;
+            $stmt->execute([$productId]);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            return [
+                'stars' => $result['avg_rating'] ? round($result['avg_rating'], 1) : 0,
+                'count' => $result['total_reviews'] ?: 0
+            ];
         } catch (PDOException $e) {
-            error_log("Product::findById - DB Error: " . $e->getMessage());
-            return null;
+            error_log("Error in calculateAverageRating: " . $e->getMessage());
+            return ['stars' => 0, 'count' => 0];
         }
-    }
-    public function findBySlug($slug)
-    {
-        $sql = "SELECT p.*, c.name as collection_name 
-                FROM {$this->table} p 
-                LEFT JOIN collections c ON p.collection_id = c.id 
-                WHERE p.slug = ?";
-        
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute([$slug]);
-        $product = $stmt->fetch(PDO::FETCH_ASSOC);
-        
-        if ($product) {
-            $product['primary_image'] = $this->getPrimaryImage($product['id']);
-            $product['price'] = $this->getProductPrice($product['id']);
-            $product['images'] = $this->getImages($product['id']);
-            $product['variants'] = $this->getVariants($product['id']);
-        }
-        
-        return $product;
-    }
-     /**
-     * Lấy ảnh chính của sản phẩm
-     */
-    public function getPrimaryImage($productId)
-    {
-        $stmt = $this->db->prepare("SELECT image_url FROM product_images WHERE product_id = ? AND is_primary = 1 LIMIT 1");
-        $stmt->execute([$productId]);
-        $image = $stmt->fetchColumn();
-        return $image ?: '/public/images/no-image.png';
-    }
-    /**
-     * Lấy giá sản phẩm (giá thấp nhất từ variants)
-     */
-    public function getProductPrice($productId)
-    {
-        $stmt = $this->db->prepare("SELECT MIN(sale_price) as price FROM product_variants WHERE product_id = ?");
-        $stmt->execute([$productId]);
-        $result = $stmt->fetch(PDO::FETCH_ASSOC);
-        return $result['price'] ?? 0;
-    }
-    /**
-     * Lấy tất cả biến thể của sản phẩm
-     */
-    public function getVariants($productId)
-    {
-        $stmt = $this->db->prepare("SELECT * FROM product_variants WHERE product_id = ? ORDER BY size ASC, color ASC");
-        $stmt->execute([$productId]);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
-     /**
-     * Kiểm tra tồn kho của biến thể
-     */
-    public function checkVariantStock($variantId, $quantity)
-    {
-        $stmt = $this->db->prepare("SELECT stock_quantity FROM product_variants WHERE id = ?");
-        $stmt->execute([$variantId]);
-        $stock = $stmt->fetchColumn();
-        return $stock !== false && $stock >= $quantity;
     }
 }

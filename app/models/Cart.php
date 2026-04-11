@@ -12,17 +12,18 @@ class Cart extends Model
         if ($userId) {
             $stmt = $this->db->prepare("SELECT id FROM {$this->table} WHERE user_id = ?");
             $stmt->execute([$userId]);
-        } else {
+        }
+        else {
             $stmt = $this->db->prepare("SELECT id FROM {$this->table} WHERE session_id = ? AND user_id IS NULL");
             $stmt->execute([$sessionId]);
         }
-        
+
         $cart = $stmt->fetch(PDO::FETCH_ASSOC);
-        
+
         if ($cart) {
             return $cart['id'];
         }
-        
+
         // Tạo cart mới
         $stmt = $this->db->prepare("INSERT INTO {$this->table} (user_id, session_id) VALUES (?, ?)");
         $stmt->execute([$userId, $sessionId]);
@@ -42,7 +43,8 @@ class Cart extends Model
             $newQuantity = $existing['quantity'] + $quantity;
             $stmt = $this->db->prepare("UPDATE {$this->itemsTable} SET quantity = ? WHERE id = ?");
             return $stmt->execute([$newQuantity, $existing['id']]);
-        } else {
+        }
+        else {
             // Thêm mới
             $stmt = $this->db->prepare("INSERT INTO {$this->itemsTable} (cart_id, product_id, variant_id, quantity) 
                                         VALUES (?, ?, ?, ?)");
@@ -59,10 +61,22 @@ class Cart extends Model
                 JOIN product_variants pv ON ci.variant_id = pv.id
                 LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1
                 WHERE ci.cart_id = ?";
-        
+
         $stmt = $this->db->prepare($sql);
         $stmt->execute([$cartId]);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Đảm bảo đường dẫn tuyệt đối cho ảnh
+        foreach ($items as &$item) {
+            if ($item['primary_image']) {
+                $item['primary_image'] = '/shop_giay/' . ltrim($item['primary_image'], '/');
+            }
+            else {
+                $item['primary_image'] = '/shop_giay/public/images/no-image.png';
+            }
+        }
+
+        return $items;
     }
 
     public function getTotal($cartId)
@@ -71,7 +85,7 @@ class Cart extends Model
                 FROM {$this->itemsTable} ci
                 JOIN product_variants pv ON ci.variant_id = pv.id
                 WHERE ci.cart_id = ?";
-        
+
         $stmt = $this->db->prepare($sql);
         $stmt->execute([$cartId]);
         $result = $stmt->fetch(PDO::FETCH_ASSOC);

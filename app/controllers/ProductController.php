@@ -3,11 +3,19 @@
 
 class ProductController extends Controller
 {
+    // 1. Khai báo thuộc tính để dùng chung trong toàn bộ Class
+    private $productModel;
+    private $collectionModel;
+
+    public function __construct()
+    {
+        // 2. Khởi tạo Model ngay khi Controller được gọi
+        $this->productModel = $this->model('Product');
+        $this->collectionModel = $this->model('Collection');
+    }
+
     public function index()
     {
-        $productModel = $this->model('Product');
-        $collectionModel = $this->model('Collection');
-
         // Lấy các tham số từ URL
         $query = $_GET['q'] ?? null;
         $collectionSlug = $_GET['collection'] ?? null;
@@ -19,18 +27,16 @@ class ProductController extends Controller
 
         $title = 'Tất cả sản phẩm';
 
-        // Xử lý tìm kiếm
+        // Xử lý tìm kiếm hoặc lọc (Dùng $this->productModel)
         if ($query) {
-            $products = $productModel->search($query);
+            $products = $this->productModel->search($query);
             $title = 'Tìm kiếm: ' . htmlspecialchars($query);
         }
-        // Xử lý lọc với nhiều tiêu chí
         else if ($collectionSlug || $categoryId || $gender || $minPrice || $maxPrice || $size) {
-            $products = $productModel->filter($categoryId, $gender, $collectionSlug, $minPrice, $maxPrice, $size);
+            $products = $this->productModel->filter($categoryId, $gender, $collectionSlug, $minPrice, $maxPrice, $size);
 
-            // Cập nhật tiêu đề
             if ($collectionSlug) {
-                $col = $collectionModel->getBySlug($collectionSlug);
+                $col = $this->collectionModel->getBySlug($collectionSlug);
                 $title = $col ? $col['name'] : 'Bộ sưu tập';
             }
             elseif ($gender) {
@@ -41,26 +47,25 @@ class ProductController extends Controller
             }
         }
         else {
-            $products = $productModel->getAll();
+            $products = $this->productModel->getAll();
         }
 
-        // Lấy dữ liệu cho sidebar filter
-        $collections = $collectionModel->getAll();
-        $sizes = $productModel->getAllSizes();
-        $sizeCounts = $productModel->countProductsBySize();
-        $priceRange = $productModel->getPriceRange();
+        // Lấy dữ liệu cho sidebar
+        $collections = $this->collectionModel->getAll();
+        $sizes = $this->productModel->getAllSizes();
+        $sizeCounts = $this->productModel->countProductsBySize();
+        $priceRange = $this->productModel->getPriceRange();
 
-        // Đếm số lượng theo giới tính
+        // Thống kê số lượng
         $genderCounts = [
-            'Men' => $productModel->countByGender('Men'),
-            'Women' => $productModel->countByGender('Women'),
-            'Unisex' => $productModel->countByGender('Unisex')
+            'Men' => $this->productModel->countByGender('Men'),
+            'Women' => $this->productModel->countByGender('Women'),
+            'Unisex' => $this->productModel->countByGender('Unisex')
         ];
 
-        // Đếm số lượng theo collection
         $collectionCounts = [];
         foreach ($collections as $col) {
-            $collectionCounts[$col['slug']] = $productModel->countByCollection($col['slug']);
+            $collectionCounts[$col['slug']] = $this->productModel->countByCollection($col['slug']);
         }
 
         $this->view('product/index', [
@@ -75,27 +80,52 @@ class ProductController extends Controller
             'currentSize' => $size,
             'currentMinPrice' => $minPrice,
             'currentMaxPrice' => $maxPrice,
-            // Thêm các biến đếm
             'genderCounts' => $genderCounts,
             'collectionCounts' => $collectionCounts,
-            // Thêm model để dùng trong view (nếu cần)
-            'productModel' => $productModel
+            'productModel' => $this->productModel
         ]);
+    }
+
+    public function addReview()
+    {
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $data = [
+                'product_id' => $_POST['product_id'],
+                'customer_name' => htmlspecialchars($_POST['customer_name']),
+                'rating' => (int)$_POST['rating'],
+                'comment' => htmlspecialchars($_POST['comment'])
+            ];
+
+            // Gọi model thông qua $this->productModel (đã khởi tạo ở __construct)
+            if ($this->productModel->addReview($data)) {
+                header('Location: ' . $_SERVER['HTTP_REFERER']);
+                exit();
+            }
+            else {
+                echo "Lỗi không thể gửi đánh giá!";
+            }
+        }
     }
 
     public function detail($slug)
     {
-        $productModel = $this->model('Product');
-        $product = $productModel->getBySlug($slug);
+        // Tìm sản phẩm bằng Slug
+        $product = $this->productModel->findBySlug($slug);
 
         if (!$product) {
-            $this->redirect('product/index');
+            // Chuyển hướng về trang danh sách nếu không tìm thấy sản phẩm
+            header('Location: /shop_giay/product/index');
+            exit();
         }
 
-
+        // Lấy đánh giá thật từ Database
+        $reviews = $this->productModel->getReviewsByProductId($product['id']);
+        $ratingData = $this->productModel->calculateAverageRating($product['id']);
 
         $this->view('product/detail', [
             'product' => $product,
+            'reviews' => $reviews,
+            'ratingData' => $ratingData,
             'title' => $product['name'] . ' - Đớ Store'
         ]);
     }

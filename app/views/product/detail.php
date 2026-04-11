@@ -375,6 +375,47 @@
     line-height: 1.8;
     margin: 0;
 }
+/* Rating Styles */
+.product-rating-section {
+    background: #fff;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+    margin-top: 2rem;
+}
+.rating-summary {
+    border-bottom: 1px solid #eee;
+    padding-bottom: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+.big-rating-number {
+    font-size: 3rem;
+    font-weight: 700;
+    color: var(--primary-red);
+}
+.star-rating i {
+    color: #ffc107;
+    margin-right: 2px;
+}
+.star-rating i.far {
+    color: #ddd;
+}
+.review-item {
+    padding: 1rem 0;
+    border-bottom: 1px solid #f5f5f5;
+}
+.review-user {
+    font-weight: 600;
+    margin-bottom: 0.2rem;
+}
+.review-date {
+    font-size: 0.8rem;
+    color: #999;
+}
+.review-content {
+    margin-top: 0.5rem;
+    color: #444;
+}
 
 /* Responsive */
 @media (max-width: 768px) {
@@ -397,109 +438,6 @@
     .size-options {
         justify-content: center;
     }
-}
-/* Reviews Styles */
-.reviews-section {
-    background: white;
-    border-radius: var(--border-radius);
-    padding: 2.5rem;
-    margin-top: 2rem;
-    box-shadow: var(--shadow-md);
-    border: 1px solid rgba(255,71,87,0.1);
-}
-
-.reviews-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 2rem;
-    border-bottom: 2px solid #f8f9fa;
-    padding-bottom: 1.5rem;
-}
-
-.rating-summary {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-}
-
-.avg-rating-number {
-    font-size: 3.5rem;
-    font-weight: 800;
-    color: var(--primary-red);
-    line-height: 1;
-}
-
-.avg-rating-stars {
-    color: #ffc107;
-    font-size: 1.2rem;
-}
-
-.review-item {
-    padding: 1.5rem 0;
-    border-bottom: 1px solid #f0f0f0;
-}
-
-.review-item:last-child {
-    border-bottom: none;
-}
-
-.review-meta {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 0.5rem;
-}
-
-.reviewer-name {
-    font-weight: 600;
-    color: #333;
-}
-
-.review-date {
-    font-size: 0.85rem;
-    color: #999;
-}
-
-.review-rating {
-    color: #ffc107;
-    margin-bottom: 0.8rem;
-}
-
-.review-comment {
-    color: #555;
-    line-height: 1.6;
-}
-
-.review-form-container {
-    background: #f8f9fa;
-    padding: 2rem;
-    border-radius: 12px;
-    margin-top: 2rem;
-}
-
-.star-rating-input {
-    display: flex;
-    flex-direction: row-reverse;
-    justify-content: flex-end;
-    gap: 10px;
-    margin-bottom: 1rem;
-}
-
-.star-rating-input input {
-    display: none;
-}
-
-.star-rating-input label {
-    font-size: 1.5rem;
-    color: #ddd;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.star-rating-input label:hover,
-.star-rating-input label:hover ~ label,
-.star-rating-input input:checked ~ label {
-    color: #ffc107;
 }
 </style>
 
@@ -662,6 +600,256 @@
             <!-- Thêm grid sản phẩm liên quan ở đây -->
         </div>
         <?php endif; ?>
+    </div>
+</div>
+<style>
+    /* CSS Tùy chỉnh cho phần Đánh giá - ĐỚ Store */
+    :root {
+        --do-red-gradient: linear-gradient(135deg, #ff416c, #ff4b2b);
+        --do-star-color: #ffc107;
+        --do-text-muted: #6c757d;
+    }
+
+    .do-rating-section {
+        background: #fff;
+        padding: 2rem;
+        border-radius: 15px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        margin-top: 2rem;
+    }
+
+    .do-rating-header {
+        border-bottom: 2px solid #f8f9fa;
+        padding-bottom: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .do-big-rating {
+        font-size: 3.5rem;
+        font-weight: 700;
+        color: #ff4b2b;
+        line-height: 1;
+    }
+
+    .do-star-avg, .do-review-stars {
+        color: var(--do-star-color);
+    }
+
+    /* Style cho Form nhập */
+    .do-add-review-box {
+        background: #f8f9fa;
+        padding: 1.5rem;
+        border-radius: 10px;
+        border: 1px solid #e9ecef;
+    }
+
+    .do-add-review-box h5 {
+        color: #333;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .do-add-review-box .form-label {
+        font-weight: 500;
+        color: #555;
+        font-size: 0.9rem;
+    }
+
+    .do-add-review-box .form-control, 
+    .do-add-review-box .form-select {
+        border-radius: 8px;
+        border: 1px solid #ddd;
+        padding: 0.6rem 1rem;
+        width: 100%; /* Đảm bảo rộng hết cỡ theo khung chứa */
+        display: block;
+    }
+
+    /* Riêng cho ô nội dung đánh giá */
+    .do-add-review-box textarea.form-control {
+        resize: vertical; /* Cho phép kéo dài chiều cao nhưng không làm lệch chiều ngang */
+        min-height: 200px; /* Độ cao mặc định lớn để người dùng ghi được nhiều */
+    }
+
+    .do-add-review-box .form-control:focus {
+        border-color: #ff4b2b;
+        box-shadow: 0 0 0 0.2rem rgba(255, 75, 43, 0.1);
+        outline: none;
+    }
+
+    .do-btn-submit {
+        background: var(--do-red-gradient);
+        color: white;
+        border: none;
+        padding: 0.7rem 2rem;
+        border-radius: 25px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .do-btn-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 10px rgba(255, 75, 43, 0.2);
+        color: white;
+    }
+
+    /* Style cho danh sách bình luận */
+    .do-review-item {
+        padding: 1.5rem 0;
+        border-bottom: 1px solid #eee;
+    }
+
+    .do-review-item:last-child {
+        border-bottom: none;
+    }
+
+    .do-review-user-icon {
+        width: 45px;
+        height: 45px;
+        background: #eee;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #999;
+        font-size: 1.2rem;
+    }
+
+    .do-review-user-name {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 0;
+    }
+
+    .do-review-date {
+        font-size: 0.8rem;
+        color: var(--do-text-muted);
+    }
+
+    .do-review-content {
+        color: #555;
+        margin-top: 0.8rem;
+        line-height: 1.6;
+        background: #fdfdfd;
+        padding: 1rem;
+        border-radius: 8px;
+        border: 1px solid #f1f1f1;
+    }
+</style>
+
+<div class="container do-rating-section">
+    <div class="row do-rating-header align-items-center">
+        <div class="col-md-4 text-center border-end">
+            <h4 class="mb-3">Đánh giá sản phẩm</h4>
+            <div class="do-big-rating">
+                <?= isset($ratingData) ? round($ratingData['stars'], 1) : '0' ?><span style="font-size: 1.5rem; color: #999;">/5</span>
+            </div>
+            <div class="do-star-avg my-2" style="font-size: 1.2rem;">
+                <?php 
+                $avg = isset($ratingData) ? $ratingData['stars'] : 0;
+                for($i=1; $i<=5; $i++): ?>
+                    <i class="<?= $i <= round($avg) ? 'fas' : 'far' ?> fa-star"></i>
+                <?php endfor; ?>
+            </div>
+            <p class="text-muted mb-0">(<?= isset($ratingData) ? $ratingData['count'] : 0 ?> đánh giá thực tế)</p>
+        </div>
+        <div class="col-md-8 ps-md-5">
+            <h5 class="text-muted">Chia sẻ trải nghiệm của bạn</h5>
+            <p>Chúng tôi luôn trân trọng mọi ý kiến đóng góp của bạn để hoàn thiện sản phẩm và dịch vụ tại ĐỚ Store.</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-5 mb-4 mb-lg-0">
+            <div class="do-add-review-box shadow-sm">
+                <h5 class="mb-4"><i class="fas fa-edit" style="color: #ff4b2b;"></i> Viết đánh giá của bạn</h5>
+                <form action="/shop_giay/product/addReview" method="POST">
+                    <input type="hidden" name="product_id" value="<?= $product['id'] ?>">
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Tên hiển thị <span class="text-danger">*</span></label>
+                        <input type="text" name="customer_name" class="form-control" placeholder="Ví dụ: Anh Thao" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Phân loại (Số sao) <span class="text-danger">*</span></label>
+                        <select name="rating" class="form-select" required style="color: var(--do-star-color); font-weight: bold;">
+                            <option value="5" selected>⭐⭐⭐⭐⭐ - Tuyệt vời</option>
+                            <option value="4">⭐⭐⭐⭐ - Tốt</option>
+                            <option value="3">⭐⭐⭐ - Trung bình</option>
+                            <option value="2">⭐⭐ - Tệ</option>
+                            <option value="1">⭐ - Rất tệ</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+    <label class="form-label font-weight-bold">Nội dung đánh giá <span class="text-danger">*</span></label>
+    <textarea 
+        name="comment" 
+        class="form-control" 
+        rows="8" 
+        placeholder="Hãy chia sẻ cảm nhận chi tiết của bạn về chất lượng sản phẩm và dịch vụ tại ĐỚ Store..." 
+        required
+    ></textarea>
+</div>
+
+                    <div class="text-end">
+                        <button type="submit" class="do-btn-submit">
+                            <i class="fas fa-paper-plane"></i> Gửi đánh giá ngay
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="col-lg-7 ps-lg-4">
+            <h5 class="mb-4">Bình luận từ khách hàng</h5>
+            <div class="do-reviews-list" style="max-height: 550px; overflow-y: auto; padding-right: 15px;">
+                <?php if(!empty($reviews)): ?>
+                    <?php foreach($reviews as $rev): ?>
+                        <div class="do-review-item">
+                            <div class="d-flex align-items-center gap-3 mb-2">
+                                <div class="do-review-user-icon">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <p class="do-review-user-name"><?= htmlspecialchars($rev['fullname']) ?></p>
+                                        <span class="do-review-date">
+                                            <i class="far fa-clock me-1"></i>
+                                            <?= date('d/m/Y', strtotime($rev['created_at'])) ?>
+                                        </span>
+                                    </div>
+                                    <div class="do-review-stars" style="font-size: 0.85rem;">
+                                        <?php for($i=1; $i<=5; $i++): ?>
+                                            <i class="<?= $i <= $rev['rating'] ? 'fas' : 'far' ?> fa-star"></i>
+                                        <?php endfor; ?>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="do-review-content shadow-sm">
+                                <?= nl2br(htmlspecialchars($rev['comment'])) ?>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <div class="text-center py-5 border rounded" style="background: #fefefe;">
+                        <i class="fas fa-comments fa-3x mb-3" style="color: #ddd;">
+                        </i>
+                        <p class="text-muted">Chưa có đánh giá nào cho sản phẩm này.</p>
+                        <p class="small text-muted">Hãy là người đầu tiên chia sẻ cảm nhận!</p>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+</div>
+    </form>
+</div>
     </div>
 </div>
 
