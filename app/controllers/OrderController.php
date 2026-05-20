@@ -61,7 +61,7 @@ class OrderController extends Controller
     private function processBuyNowSelection($product, $variants)
     {
         $variantId = $_POST['variant_id'] ?? null;
-        $quantity = (int)($_POST['quantity'] ?? 1);
+        $quantity = (int) ($_POST['quantity'] ?? 1);
 
         // Validate
         if (!$variantId) {
@@ -94,18 +94,18 @@ class OrderController extends Controller
 
         // Tạo item để chuyển sang checkout - CHỈ 1 SẢN PHẨM
         $buyNowItem = [
-    [
-        'product_id' => $product['id'],
-        'variant_id' => $selectedVariant['id'],
-        'name' => $product['name'],
-        'slug' => $product['slug'],
-        'size' => $selectedVariant['size'],
-        'color' => $selectedVariant['color'],
-        'price' => $selectedVariant['sale_price'],
-        'quantity' => $quantity,
-        'image' => $product['primary_image'] ?? '/public/images/no-image.png' // Đổi tên key
-    ]
-];
+            [
+                'product_id' => $product['id'],
+                'variant_id' => $selectedVariant['id'],
+                'name' => $product['name'],
+                'slug' => $product['slug'],
+                'size' => $selectedVariant['size'],
+                'color' => $selectedVariant['color'],
+                'price' => $selectedVariant['sale_price'],
+                'quantity' => $quantity,
+                'image' => $product['primary_image'] ?? '/public/images/no-image.png' // Đổi tên key
+            ]
+        ];
 
         // Lưu vào SESSION riêng - KHÔNG ẢNH HƯỞNG GIỎ HÀNG
         $_SESSION['buy_now_items'] = $buyNowItem;
@@ -126,8 +126,10 @@ class OrderController extends Controller
         // Kiểm tra đăng nhập
         if (!isset($_SESSION['user_id']) && !isset($_SESSION['customer_id'])) {
             // Nếu là AJAX request
-            if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) &&
-            strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
+            if (
+                !empty($_SERVER['HTTP_X_REQUESTED_WITH']) &&
+                strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest'
+            ) {
                 return $this->jsonResponse([
                     'success' => false,
                     'message' => 'Vui lòng đăng nhập để tiếp tục',
@@ -146,8 +148,7 @@ class OrderController extends Controller
         if ($customerId) {
             $customerModel = $this->model('Customer');
             $user = $customerModel->findById($customerId);
-        }
-        elseif ($userId) {
+        } elseif ($userId) {
             $userModel = $this->model('User');
             $userData = $userModel->findById($userId);
             if ($userData) {
@@ -155,8 +156,7 @@ class OrderController extends Controller
                 $user = $customerModel->findByUsername($userData['username']);
                 if ($user) {
                     $_SESSION['customer_id'] = $user['id'];
-                }
-                else {
+                } else {
                     // Tạo customer mới từ user
                     $customerData = [
                         'username' => $userData['username'],
@@ -176,8 +176,9 @@ class OrderController extends Controller
             }
         }
 
-        // Kiểm tra xem có phải đang mua ngay không
-        $isBuyNow = isset($_GET['type']) && $_GET['type'] == 'buy_now';
+        // Kiểm tra xem có phải đang mua ngay không (Hỗ trợ cả GET và POST AJAX)
+        $isBuyNow = (isset($_GET['type']) && $_GET['type'] == 'buy_now') ||
+            (isset($_POST['checkout_type']) && $_POST['checkout_type'] == 'buy_now');
 
         if ($isBuyNow) {
             // Lấy items từ session buy_now
@@ -187,8 +188,10 @@ class OrderController extends Controller
                 error_log("OrderController::checkout - Buy Now items missing in session");
 
                 // Nếu là AJAX request
-                if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) &&
-                strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
+                if (
+                    !empty($_SERVER['HTTP_X_REQUESTED_WITH']) &&
+                    strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest'
+                ) {
                     return $this->jsonResponse([
                         'success' => false,
                         'message' => 'Không tìm thấy sản phẩm để thanh toán.'
@@ -206,8 +209,7 @@ class OrderController extends Controller
             foreach ($items as $item) {
                 $total += ($item['price'] ?? 0) * ($item['quantity'] ?? 0);
             }
-        }
-        else {
+        } else {
             // Lấy items từ giỏ hàng
             $cartModel = $this->model('Cart');
             $cartId = $this->getCartId();
@@ -218,8 +220,10 @@ class OrderController extends Controller
                 error_log("OrderController::checkout - Cart is empty for CartID: " . $cartId);
 
                 // Nếu là AJAX request
-                if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) &&
-                strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
+                if (
+                    !empty($_SERVER['HTTP_X_REQUESTED_WITH']) &&
+                    strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest'
+                ) {
                     return $this->jsonResponse([
                         'success' => false,
                         'message' => 'Giỏ hàng của bạn đang trống.'
@@ -299,8 +303,7 @@ class OrderController extends Controller
         }
         if (empty($data['recipient_phone'])) {
             $errors[] = 'Vui lòng nhập số điện thoại.';
-        }
-        elseif (!preg_match('/^[0-9]{10,11}$/', $data['recipient_phone'])) {
+        } elseif (!preg_match('/^[0-9]{10,11}$/', $data['recipient_phone'])) {
             $errors[] = 'Số điện thoại không hợp lệ (10-11 số).';
         }
         if (empty($data['shipping_address'])) {
@@ -341,8 +344,7 @@ class OrderController extends Controller
                         $_SESSION['customer_id'] = $customerId;
                     }
                 }
-            }
-            else {
+            } else {
                 $customerId = $customer['id'];
                 $_SESSION['customer_id'] = $customerId;
             }
@@ -378,8 +380,7 @@ class OrderController extends Controller
             // Xóa giỏ hàng hoặc session buy_now
             if ($isBuyNow) {
                 unset($_SESSION['buy_now_items']);
-            }
-            else {
+            } else {
                 $cartModel = $this->model('Cart');
                 $cartModel->clearCart($cartId);
             }
@@ -389,8 +390,7 @@ class OrderController extends Controller
                 'message' => 'Đặt hàng thành công!',
                 'order_code' => $orderCode
             ]);
-        }
-        else {
+        } else {
             return $this->jsonResponse([
                 'success' => false,
                 'message' => 'Có lỗi xảy ra trong quá trình tạo đơn hàng. Vui lòng thử lại.'
@@ -445,8 +445,7 @@ class OrderController extends Controller
 
             $promotionModel = $this->model('Promotion');
             return $promotionModel->getActivePromotions();
-        }
-        catch (Exception $e) {
+        } catch (Exception $e) {
             error_log("Error getting promotions: " . $e->getMessage());
             return [];
         }
@@ -476,8 +475,7 @@ class OrderController extends Controller
                     'title' => 'Theo dõi đơn hàng - Đớ Store'
                 ]);
                 return;
-            }
-            else {
+            } else {
                 $this->view('order/tracking', [
                     'error' => 'Không tìm thấy đơn hàng với mã: ' . $orderCode,
                     'title' => 'Theo dõi đơn hàng - Đớ Store'
@@ -502,8 +500,7 @@ class OrderController extends Controller
                     'title' => 'Theo dõi đơn hàng - Đớ Store'
                 ]);
                 return;
-            }
-            else {
+            } else {
                 $this->view('order/tracking', [
                     'error' => 'Không tìm thấy đơn hàng với mã này.',
                     'title' => 'Theo dõi đơn hàng - Đớ Store'
@@ -533,8 +530,7 @@ class OrderController extends Controller
         if ($customerId) {
             // Lấy đơn hàng theo customer_id
             $orders = $orderModel->getByCustomerId($customerId);
-        }
-        elseif ($userId) {
+        } elseif ($userId) {
             // Nếu có user_id, tìm customer tương ứng
             $customerModel = $this->model('Customer');
             $customer = $customerModel->findByUserId($userId);

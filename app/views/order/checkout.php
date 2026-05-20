@@ -532,6 +532,8 @@
             <?php endif; ?>
 
             <form id="checkoutForm" method="POST" action="/shop_giay/order/checkout">
+                <!-- Giữ loại checkout (buy_now hoặc cart) -->
+                <input type="hidden" name="checkout_type" value="<?= htmlspecialchars($_GET['type'] ?? 'cart') ?>">
                 <!-- Thông tin người nhận -->
                 <div class="form-section">
                     <h3 class="section-title">
@@ -716,7 +718,8 @@
                                     $item['primary_image'] ?? // Ưu tiên primary_image
                                     $item['image'] ??        // Fallback sang image
                                     '/public/images/no-image.png' // Fallback cuối cùng
-                                ) ?>" alt="<?= htmlspecialchars($item['name']) ?>" onerror="this.src='/public/images/no-image.png'">
+                                ) ?>" alt="<?= htmlspecialchars($item['name']) ?>"
+                                    onerror="this.src='/public/images/no-image.png'">
                             </div>
                             <div class="item-details">
                                 <div class="item-name"><?= htmlspecialchars($item['name']) ?></div>
@@ -858,9 +861,9 @@
             <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
             <span style="margin-left: 10px;">${message}</span>
         `;
-        
+
         document.body.appendChild(notification);
-        
+
         setTimeout(() => {
             notification.style.animation = 'slideOut 0.3s ease';
             setTimeout(() => notification.remove(), 300);
@@ -869,11 +872,11 @@
 
     function selectPayment(method) {
         paymentMethod = method;
-        
+
         document.querySelectorAll('.payment-method').forEach(el => {
             el.classList.remove('selected');
         });
-        
+
         if (window.event && window.event.currentTarget && window.event.currentTarget.classList) {
             window.event.currentTarget.classList.add('selected');
         } else {
@@ -883,7 +886,7 @@
         }
 
         document.getElementById('payment_' + method.toLowerCase()).checked = true;
-        
+
         if (method === 'QR') {
             document.querySelector('.checkout-form > form').style.display = 'none';
             document.getElementById('qrSection').classList.add('active');
