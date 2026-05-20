@@ -31,22 +31,18 @@ class ProductController extends Controller
         if ($query) {
             $products = $this->productModel->search($query);
             $title = 'Tìm kiếm: ' . htmlspecialchars($query);
-        }
-        else if ($collectionSlug || $categoryId || $gender || $minPrice || $maxPrice || $size) {
+        } else if ($collectionSlug || $categoryId || $gender || $minPrice || $maxPrice || $size) {
             $products = $this->productModel->filter($categoryId, $gender, $collectionSlug, $minPrice, $maxPrice, $size);
 
             if ($collectionSlug) {
                 $col = $this->collectionModel->getBySlug($collectionSlug);
                 $title = $col ? $col['name'] : 'Bộ sưu tập';
-            }
-            elseif ($gender) {
+            } elseif ($gender) {
                 $title = ($gender == 'Men') ? 'Giày Nam' : 'Giày Nữ';
-            }
-            else {
+            } else {
                 $title = 'Danh mục sản phẩm';
             }
-        }
-        else {
+        } else {
             $products = $this->productModel->getAll();
         }
 
@@ -89,19 +85,35 @@ class ProductController extends Controller
     public function addReview()
     {
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            if (!isset($_SESSION['customer_id'])) {
+                die("Bạn phải đăng nhập để đánh giá.");
+            }
+
+            $productId = $_POST['product_id'];
+            $customerId = $_SESSION['customer_id'];
+
+            // Kiểm tra xem khách hàng đã mua sản phẩm chưa
+            if (!$this->productModel->hasCustomerPurchasedProduct($customerId, $productId)) {
+                die("Chỉ khách hàng đã mua sản phẩm mới có thể đánh giá.");
+            }
+
+            // 2. Kiểm tra đã đánh giá chưa
+            if ($this->productModel->hasCustomerReviewedProduct($customerId, $productId)) {
+                die("Bạn đã đánh giá sản phẩm này rồi.");
+            }
+
             $data = [
-                'product_id' => $_POST['product_id'],
-                'customer_name' => htmlspecialchars($_POST['customer_name']),
-                'rating' => (int)$_POST['rating'],
+                'product_id' => $productId,
+                'customer_id' => $customerId,
+                'rating' => (int) $_POST['rating'],
                 'comment' => htmlspecialchars($_POST['comment'])
             ];
 
-            // Gọi model thông qua $this->productModel (đã khởi tạo ở __construct)
+            // Gọi model thông qua $this->productModel
             if ($this->productModel->addReview($data)) {
                 header('Location: ' . $_SERVER['HTTP_REFERER']);
                 exit();
-            }
-            else {
+            } else {
                 echo "Lỗi không thể gửi đánh giá!";
             }
         }
@@ -122,10 +134,21 @@ class ProductController extends Controller
         $reviews = $this->productModel->getReviewsByProductId($product['id']);
         $ratingData = $this->productModel->calculateAverageRating($product['id']);
 
+        // Kiểm tra quyền đánh giá
+        $canReview = false;
+        $hasReviewed = false;
+        if (isset($_SESSION['customer_id'])) {
+            $customerId = $_SESSION['customer_id'];
+            $canReview = $this->productModel->hasCustomerPurchasedProduct($customerId, $product['id']);
+            $hasReviewed = $this->productModel->hasCustomerReviewedProduct($customerId, $product['id']);
+        }
+
         $this->view('product/detail', [
             'product' => $product,
             'reviews' => $reviews,
             'ratingData' => $ratingData,
+            'canReview' => $canReview,
+            'hasReviewed' => $hasReviewed,
             'title' => $product['name'] . ' - Đớ Store'
         ]);
     }

@@ -176,7 +176,7 @@ class Product extends Model
     public function getRealRatingInfo($productId)
     {
         $sql = "SELECT AVG(rating) as avg_rating, COUNT(id) as total_reviews 
-                FROM reviews WHERE product_id = ?";
+                FROM product_reviews WHERE product_id = ?";
         $stmt = $this->db->prepare($sql);
         $stmt->execute([$productId]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
@@ -187,11 +187,12 @@ class Product extends Model
      */
     public function getReviewsByProductId($productId)
     {
-        // Chúng ta lấy trực tiếp customer_name vì bảng reviews của bạn không có customer_id
-        $sql = "SELECT id, product_id, customer_name as fullname, rating, comment, created_at 
-                FROM reviews 
-                WHERE product_id = ? 
-                ORDER BY created_at DESC";
+        // Sử dụng JOIN để lấy tên khách hàng từ bảng customers dựa trên customer_id
+        $sql = "SELECT r.id, r.product_id, c.full_name as fullname, r.rating, r.comment, r.created_at 
+                FROM product_reviews r
+                JOIN customers c ON r.customer_id = c.id
+                WHERE r.product_id = ? 
+                ORDER BY r.created_at DESC";
 
         try {
             $stmt = $this->db->prepare($sql);
@@ -331,24 +332,61 @@ class Product extends Model
      */
     public function addReview($data)
     {
-        // Câu lệnh SQL để lưu vào bảng reviews
-        // Đảm bảo tên bảng và các cột khớp với database của bạn
-        $sql = "INSERT INTO reviews (product_id, customer_name, rating, comment, created_at) 
-            VALUES (:product_id, :customer_name, :rating, :comment, NOW())";
+        // Câu lệnh SQL để lưu vào bảng product_reviews
+        // Bảng này KHÔNG có cột customer_name, ta chỉ lưu customer_id
+        $sql = "INSERT INTO product_reviews (product_id, customer_id, rating, comment, created_at) 
+            VALUES (:product_id, :customer_id, :rating, :comment, NOW())";
 
         try {
             $stmt = $this->db->prepare($sql);
 
-            // Ràng buộc dữ liệu để tránh SQL Injection
             return $stmt->execute([
                 ':product_id' => $data['product_id'],
-                ':customer_name' => $data['customer_name'],
+                ':customer_id' => $data['customer_id'],
                 ':rating' => $data['rating'],
                 ':comment' => $data['comment']
             ]);
         } catch (PDOException $e) {
-            // Ghi log lỗi nếu có vấn đề về truy vấn
             error_log("Lỗi Model Product::addReview: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Kiểm tra xem khách hàng đã đánh giá sản phẩm này chưa
+     */
+    public function hasCustomerReviewedProduct($customerId, $productId)
+    {
+        $sql = "SELECT COUNT(*) FROM product_reviews WHERE customer_id = ? AND product_id = ?";
+        try {
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute([$customerId, $productId]);
+            return $stmt->fetchColumn() > 0;
+        } catch (PDOException $e) {
+            error_log("Error in hasCustomerReviewedProduct: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Kiểm tra xem khách hàng đã mua sản phẩm này chưa (đơn hàng Completed)
+     */
+    public function hasCustomerPurchasedProduct($customerId, $productId)
+    {
+        $sql = "SELECT COUNT(*) 
+                FROM orders o 
+                JOIN order_details od ON o.id = od.order_id 
+                JOIN product_variants pv ON od.product_variant_id = pv.id
+                WHERE o.customer_id = ? 
+                  AND pv.product_id = ? 
+                  AND o.order_status = 'Completed'";
+
+        try {
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute([$customerId, $productId]);
+            return $stmt->fetchColumn() > 0;
+        } catch (PDOException $e) {
+            error_log("Error in hasCustomerPurchasedProduct: " . $e->getMessage());
             return false;
         }
     }
@@ -379,7 +417,7 @@ class Product extends Model
     public function calculateAverageRating($productId)
     {
         $sql = "SELECT AVG(rating) as avg_rating, COUNT(id) as total_reviews 
-                FROM reviews 
+                FROM product_reviews 
                 WHERE product_id = ?";
 
         try {

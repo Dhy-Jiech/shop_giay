@@ -767,42 +767,68 @@
         <div class="col-lg-5 mb-4 mb-lg-0">
             <div class="do-add-review-box shadow-sm">
                 <h5 class="mb-4"><i class="fas fa-edit" style="color: #ff4b2b;"></i> Viết đánh giá của bạn</h5>
-                <form action="/shop_giay/product/addReview" method="POST">
-                    <input type="hidden" name="product_id" value="<?= $product['id'] ?>">
-                    
-                    <div class="mb-3">
-                        <label class="form-label">Tên hiển thị <span class="text-danger">*</span></label>
-                        <input type="text" name="customer_name" class="form-control" placeholder="Ví dụ: Anh Thao" required>
-                    </div>
+                
+                <?php if (isset($canReview) && $canReview): ?>
+                    <?php if (isset($hasReviewed) && $hasReviewed): ?>
+                        <div class="text-center py-4">
+                            <i class="fas fa-check-circle fa-3x mb-3" style="color: #28a745;"></i>
+                            <p class="text-success fw-bold">Cảm ơn bạn đã đánh giá sản phẩm này!</p>
+                            <p class="small text-muted">Mỗi khách hàng chỉ có thể đánh giá một lần cho mỗi sản phẩm đã mua.</p>
+                        </div>
+                    <?php else: ?>
+                        <form action="/shop_giay/product/addReview" method="POST">
+                            <input type="hidden" name="product_id" value="<?= $product['id'] ?>">
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Tên hiển thị</label>
+                                <input type="text" class="form-control" 
+                                       value="<?= htmlspecialchars($_SESSION['full_name'] ?? 'Khách hàng') ?>" 
+                                       disabled>
+                                <small class="text-muted">Đánh giá sẽ được lưu theo tài khoản của bạn.</small>
+                            </div>
 
-                    <div class="mb-3">
-                        <label class="form-label">Phân loại (Số sao) <span class="text-danger">*</span></label>
-                        <select name="rating" class="form-select" required style="color: var(--do-star-color); font-weight: bold;">
-                            <option value="5" selected>⭐⭐⭐⭐⭐ - Tuyệt vời</option>
-                            <option value="4">⭐⭐⭐⭐ - Tốt</option>
-                            <option value="3">⭐⭐⭐ - Trung bình</option>
-                            <option value="2">⭐⭐ - Tệ</option>
-                            <option value="1">⭐ - Rất tệ</option>
-                        </select>
-                    </div>
+                            <div class="mb-3">
+                                <label class="form-label">Phân loại (Số sao) <span class="text-danger">*</span></label>
+                                <select name="rating" class="form-select" required style="color: var(--do-star-color); font-weight: bold;">
+                                    <option value="5" selected>⭐⭐⭐⭐⭐ - Tuyệt vời</option>
+                                    <option value="4">⭐⭐⭐⭐ - Tốt</option>
+                                    <option value="3">⭐⭐⭐ - Trung bình</option>
+                                    <option value="2">⭐⭐ - Tệ</option>
+                                    <option value="1">⭐ - Rất tệ</option>
+                                </select>
+                            </div>
 
-                    <div class="mb-3">
-    <label class="form-label font-weight-bold">Nội dung đánh giá <span class="text-danger">*</span></label>
-    <textarea 
-        name="comment" 
-        class="form-control" 
-        rows="8" 
-        placeholder="Hãy chia sẻ cảm nhận chi tiết của bạn về chất lượng sản phẩm và dịch vụ tại ĐỚ Store..." 
-        required
-    ></textarea>
-</div>
+                            <div class="mb-3">
+                                <label class="form-label font-weight-bold">Nội dung đánh giá <span class="text-danger">*</span></label>
+                                <textarea 
+                                    name="comment" 
+                                    class="form-control" 
+                                    rows="8" 
+                                    placeholder="Hãy chia sẻ cảm nhận chi tiết của bạn về chất lượng sản phẩm và dịch vụ tại ĐỚ Store..." 
+                                    required
+                                ></textarea>
+                            </div>
 
-                    <div class="text-end">
-                        <button type="submit" class="do-btn-submit">
-                            <i class="fas fa-paper-plane"></i> Gửi đánh giá ngay
-                        </button>
+                            <div class="text-end">
+                                <button type="submit" class="do-btn-submit">
+                                    <i class="fas fa-paper-plane"></i> Gửi đánh giá ngay
+                                </button>
+                            </div>
+                        </form>
+                    <?php endif; ?>
+                <?php elseif (!isset($_SESSION['customer_id'])): ?>
+                    <div class="text-center py-4">
+                        <i class="fas fa-lock fa-3x mb-3" style="color: #ddd;"></i>
+                        <p class="text-muted">Vui lòng đăng nhập để đánh giá sản phẩm.</p>
+                        <a href="/shop_giay/auth/login" class="btn btn-outline-danger btn-sm">Đăng nhập ngay</a>
                     </div>
-                </form>
+                <?php else: ?>
+                    <div class="text-center py-4">
+                        <i class="fas fa-shopping-bag fa-3x mb-3" style="color: #ddd;"></i>
+                        <p class="text-muted">Bạn chưa mua sản phẩm này hoặc đơn hàng chưa hoàn tất.</p>
+                        <p class="small text-muted">Chỉ những khách hàng đã mua và nhận hàng mới có thể gửi đánh giá.</p>
+                    </div>
+                <?php endif; ?>
             </div>
         </div>
 
