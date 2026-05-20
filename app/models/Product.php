@@ -17,7 +17,7 @@ class Product extends Model
                 GROUP BY p.id 
                 ORDER BY p.id DESC 
                 LIMIT ?";
-        
+
         $stmt = $this->db->prepare($sql);
         $stmt->execute([$limit]);
         $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -33,7 +33,7 @@ class Product extends Model
                 FROM products p 
                 LEFT JOIN collections c ON p.collection_id = c.id 
                 WHERE p.slug = ? AND p.status = 'In Stock'";
-                
+
         $stmt = $this->db->prepare($sql);
         $stmt->execute([$slug]);
         $product = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -43,7 +43,7 @@ class Product extends Model
             $product['variants'] = $this->getVariants($product['id']);
             $product['images'] = $this->getImages($product['id']);
             $product['primary_image'] = $this->getPrimaryImage($product['id']);
-            
+
             // Lấy giá mặc định từ biến thể đầu tiên
             if (!empty($product['variants'])) {
                 $product['price'] = $product['variants'][0]['sale_price'];
@@ -65,18 +65,19 @@ class Product extends Model
     public function findById($id)
     {
         $id = trim($id);
-        if (!is_numeric($id)) return null;
+        if (!is_numeric($id))
+            return null;
 
         $sql = "SELECT p.*, c.name as collection_name 
                 FROM products p 
                 LEFT JOIN collections c ON p.collection_id = c.id 
                 WHERE p.id = ?";
-        
+
         try {
             $stmt = $this->db->prepare($sql);
             $stmt->execute([$id]);
             $product = $stmt->fetch(PDO::FETCH_ASSOC);
-            
+
             if ($product) {
                 if (empty($product['slug'])) {
                     $product['slug'] = 'san-pham-' . $product['id'];
@@ -84,7 +85,7 @@ class Product extends Model
                 $product['primary_image'] = $this->getPrimaryImage($product['id']);
                 $product['price'] = $this->getProductPrice($product['id']);
                 $product['variants'] = $this->getVariants($product['id']);
-                
+
                 $ratingData = $this->getRealRatingInfo($product['id']);
                 $product['rating'] = $ratingData['avg_rating'] ?: 0;
                 $product['review_count'] = $ratingData['total_reviews'] ?: 0;
@@ -108,7 +109,7 @@ class Product extends Model
                 LEFT JOIN product_variants pv ON p.id = pv.product_id
                 WHERE (p.name LIKE ? OR p.description LIKE ?) AND p.status = 'In Stock'
                 GROUP BY p.id";
-                
+
         $stmt = $this->db->prepare($sql);
         $stmt->execute([$searchTerm, $searchTerm]);
         $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -125,12 +126,24 @@ class Product extends Model
                 LEFT JOIN collections c ON p.collection_id = c.id 
                 LEFT JOIN product_variants pv ON p.id = pv.product_id 
                 WHERE p.status = 'In Stock'";
-        
+
         $params = [];
-        if ($categoryId) { $sql .= " AND p.category_id = ?"; $params[] = $categoryId; }
-        if ($gender) { $sql .= " AND p.gender = ?"; $params[] = $gender; }
-        if ($collectionSlug) { $sql .= " AND c.slug = ?"; $params[] = $collectionSlug; }
-        if ($size) { $sql .= " AND pv.size = ?"; $params[] = $size; }
+        if ($categoryId) {
+            $sql .= " AND p.category_id = ?";
+            $params[] = $categoryId;
+        }
+        if ($gender) {
+            $sql .= " AND p.gender = ?";
+            $params[] = $gender;
+        }
+        if ($collectionSlug) {
+            $sql .= " AND c.slug = ?";
+            $params[] = $collectionSlug;
+        }
+        if ($size) {
+            $sql .= " AND pv.size = ?";
+            $params[] = $size;
+        }
 
         $sql .= " GROUP BY p.id";
 
@@ -138,16 +151,19 @@ class Product extends Model
             $sql .= " HAVING";
             if ($minPrice !== null && $maxPrice !== null) {
                 $sql .= " price BETWEEN ? AND ?";
-                $params[] = (float)$minPrice; $params[] = (float)$maxPrice;
+                $params[] = (float) $minPrice;
+                $params[] = (float) $maxPrice;
             } elseif ($minPrice !== null) {
-                $sql .= " price >= ?"; $params[] = (float)$minPrice;
+                $sql .= " price >= ?";
+                $params[] = (float) $minPrice;
             } elseif ($maxPrice !== null) {
-                $sql .= " price <= ?"; $params[] = (float)$maxPrice;
+                $sql .= " price <= ?";
+                $params[] = (float) $maxPrice;
             }
         }
 
         $sql .= " ORDER BY p.id DESC";
-        
+
         $stmt = $this->db->prepare($sql);
         $stmt->execute($params);
         $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -176,7 +192,7 @@ class Product extends Model
                 FROM reviews 
                 WHERE product_id = ? 
                 ORDER BY created_at DESC";
-        
+
         try {
             $stmt = $this->db->prepare($sql);
             $stmt->execute([$productId]);
@@ -199,27 +215,31 @@ class Product extends Model
             $ratingData = $this->getRealRatingInfo($p['id']);
             $p['rating'] = $ratingData['avg_rating'] ? round($ratingData['avg_rating'], 1) : 0;
             $p['review_count'] = $ratingData['total_reviews'] ?: 0;
-            
+
             $p['category_name'] = $p['collection_name'] ?? 'Giày Thể Thao';
-            $p['price'] = isset($p['price']) ? (float)$p['price'] : 0;
+            $p['price'] = isset($p['price']) ? (float) $p['price'] : 0;
         }
         return $products;
     }
 
     // --- CÁC HÀM BỔ TRỢ HỆ THỐNG ---
 
-   public function getPrimaryImage($productId)
+    public function getPrimaryImage($productId)
     {
         $stmt = $this->db->prepare("SELECT image_url FROM product_images WHERE product_id = ? AND is_primary = 1 LIMIT 1");
         $stmt->execute([$productId]);
         $image = $stmt->fetchColumn();
-        
+
         if ($image) {
-            // Xóa dấu gạch chéo dư thừa ở đầu để XAMPP nhận đúng thư mục public
-            return ltrim($image, '/'); 
+            $image = ltrim($image, '/');
+            // Nếu đã có shop_giay_admin trong database thì không nối thêm
+            if (strpos($image, 'shop_giay_admin') !== false) {
+                return '/' . $image;
+            }
+            return '/shop_giay_admin/' . $image;
         }
-        
-        return 'public/images/no-image.png';
+
+        return '/shop_giay/public/images/no-image.png';
     }
 
     public function getProductPrice($productId)
@@ -240,7 +260,19 @@ class Product extends Model
     {
         $stmt = $this->db->prepare("SELECT * FROM product_images WHERE product_id = ?");
         $stmt->execute([$productId]);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $images = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Gắn thêm tiền tố /shop_giay_admin/ cho tất cả ảnh nếu chưa có
+        foreach ($images as &$img) {
+            $url = ltrim($img['image_url'], '/');
+            if (strpos($url, 'shop_giay_admin') !== false) {
+                $img['image_url'] = '/' . $url;
+            } else {
+                $img['image_url'] = '/shop_giay_admin/' . $url;
+            }
+        }
+
+        return $images;
     }
 
     public function getAllSizes()
@@ -265,7 +297,7 @@ class Product extends Model
                 WHERE p.status = 'In Stock'
                 GROUP BY pv.size
                 ORDER BY CAST(pv.size AS UNSIGNED) ASC";
-        
+
         try {
             $stmt = $this->db->prepare($sql);
             $stmt->execute();
@@ -291,35 +323,35 @@ class Product extends Model
         $stmt = $this->db->prepare($sql);
         $stmt->execute([$gender]);
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
-        return $result ? (int)$result['count'] : 0;
+        return $result ? (int) $result['count'] : 0;
     }
     /**
- * Thêm đánh giá mới vào cơ sở dữ liệu
- * Dữ liệu bao gồm: product_id, customer_name, rating, comment
- */
-public function addReview($data)
-{
-    // Câu lệnh SQL để lưu vào bảng reviews
-    // Đảm bảo tên bảng và các cột khớp với database của bạn
-    $sql = "INSERT INTO reviews (product_id, customer_name, rating, comment, created_at) 
+     * Thêm đánh giá mới vào cơ sở dữ liệu
+     * Dữ liệu bao gồm: product_id, customer_name, rating, comment
+     */
+    public function addReview($data)
+    {
+        // Câu lệnh SQL để lưu vào bảng reviews
+        // Đảm bảo tên bảng và các cột khớp với database của bạn
+        $sql = "INSERT INTO reviews (product_id, customer_name, rating, comment, created_at) 
             VALUES (:product_id, :customer_name, :rating, :comment, NOW())";
-    
-    try {
-        $stmt = $this->db->prepare($sql);
-        
-        // Ràng buộc dữ liệu để tránh SQL Injection
-        return $stmt->execute([
-            ':product_id'    => $data['product_id'],
-            ':customer_name' => $data['customer_name'],
-            ':rating'        => $data['rating'],
-            ':comment'       => $data['comment']
-        ]);
-    } catch (PDOException $e) {
-        // Ghi log lỗi nếu có vấn đề về truy vấn
-        error_log("Lỗi Model Product::addReview: " . $e->getMessage());
-        return false;
+
+        try {
+            $stmt = $this->db->prepare($sql);
+
+            // Ràng buộc dữ liệu để tránh SQL Injection
+            return $stmt->execute([
+                ':product_id' => $data['product_id'],
+                ':customer_name' => $data['customer_name'],
+                ':rating' => $data['rating'],
+                ':comment' => $data['comment']
+            ]);
+        } catch (PDOException $e) {
+            // Ghi log lỗi nếu có vấn đề về truy vấn
+            error_log("Lỗi Model Product::addReview: " . $e->getMessage());
+            return false;
+        }
     }
-}
 
     /**
      * Đếm số lượng sản phẩm theo bộ sưu tập
@@ -333,7 +365,7 @@ public function addReview($data)
         $stmt = $this->db->prepare($sql);
         $stmt->execute([$collectionSlug]);
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
-        return $result ? (int)$result['count'] : 0;
+        return $result ? (int) $result['count'] : 0;
     }
     /**
      * Bí danh cho hàm getBySlug để tương thích với Controller cũ
@@ -349,7 +381,7 @@ public function addReview($data)
         $sql = "SELECT AVG(rating) as avg_rating, COUNT(id) as total_reviews 
                 FROM reviews 
                 WHERE product_id = ?";
-        
+
         try {
             $stmt = $this->db->prepare($sql);
             $stmt->execute([$productId]);

@@ -12,8 +12,7 @@ class Cart extends Model
         if ($userId) {
             $stmt = $this->db->prepare("SELECT id FROM {$this->table} WHERE user_id = ?");
             $stmt->execute([$userId]);
-        }
-        else {
+        } else {
             $stmt = $this->db->prepare("SELECT id FROM {$this->table} WHERE session_id = ? AND user_id IS NULL");
             $stmt->execute([$sessionId]);
         }
@@ -43,8 +42,7 @@ class Cart extends Model
             $newQuantity = $existing['quantity'] + $quantity;
             $stmt = $this->db->prepare("UPDATE {$this->itemsTable} SET quantity = ? WHERE id = ?");
             return $stmt->execute([$newQuantity, $existing['id']]);
-        }
-        else {
+        } else {
             // Thêm mới
             $stmt = $this->db->prepare("INSERT INTO {$this->itemsTable} (cart_id, product_id, variant_id, quantity) 
                                         VALUES (?, ?, ?, ?)");
@@ -69,9 +67,13 @@ class Cart extends Model
         // Đảm bảo đường dẫn tuyệt đối cho ảnh
         foreach ($items as &$item) {
             if ($item['primary_image']) {
-                $item['primary_image'] = '/shop_giay/' . ltrim($item['primary_image'], '/');
-            }
-            else {
+                $imgUrl = ltrim($item['primary_image'], '/');
+                if (strpos($imgUrl, 'shop_giay_admin') !== false) {
+                    $item['primary_image'] = '/' . $imgUrl;
+                } else {
+                    $item['primary_image'] = '/shop_giay_admin/' . $imgUrl;
+                }
+            } else {
                 $item['primary_image'] = '/shop_giay/public/images/no-image.png';
             }
         }
